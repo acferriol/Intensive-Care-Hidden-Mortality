@@ -1,2 +1,4 @@
 # Ignorar archivos CSV de datos
 *.csv
+*.xls
+*.xlsx
