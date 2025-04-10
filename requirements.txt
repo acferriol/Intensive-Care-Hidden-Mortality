@@ -1,0 +1,8 @@
+pandas>=1.5.3
+cloudpickle>=2.2.1
+streamlit>=1.27.0
+lime>=0.2.0.1
+shap>=0.41.0
+captum>=0.6.0
+interpret>=0.4.1
+torch>=2.0.1
