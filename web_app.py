@@ -108,19 +108,19 @@ with open(rf"{path}{model_file_name}", "rb") as file:
 #    shap_grafica = pickle.load(archivo)
 
 
-try:
-    with open("Explainers/lime_explainer.pkl", "rb") as archivo:
-        lime_exp = pickle.load(archivo)
-except Exception as e:
-    print(e)
-    st.error(f"Error al cargar el explicador LIME: {e}")
+# try:
+#    with open("Explainers/lime_explainer.pkl", "rb") as archivo:
+#        lime_exp = pickle.load(archivo)
+# except Exception as e:
+#    print(e)
+#    st.error(f"Error al cargar el explicador LIME: {e}")
 
-with open("Explainers/shap_explainer.pkl", "rb") as archivo:
-    shap_exp = pickle.load(archivo)
+# with open("Explainers/shap_explainer.pkl", "rb") as archivo:
+#    shap_exp = pickle.load(archivo)
 with open("Explainers/ig_explainer.pkl", "rb") as archivo:
     ig_exp = pickle.load(archivo)
-with open("Explainers/saliency_explainer.pkl", "rb") as archivo:
-    saliency_exp = pickle.load(archivo)
+# with open("Explainers/saliency_explainer.pkl", "rb") as archivo:
+#    saliency_exp = pickle.load(archivo)
 
 
 # Función para obtener los valores de entrada del usuario
@@ -210,7 +210,7 @@ def procesar_salida_lime(salida_lime, num_caracteristicas=6):
 if "prediction" not in st.session_state:
     st.session_state.prediction = None
     st.session_state.input_df = None
-    st.session_state.explanation_method = None
+    # st.session_state.explanation_method = None
 
 # Obtener los valores de entrada del usuario
 input_df = get_user_input()
@@ -233,11 +233,11 @@ st.write(input_df_original)
 predecir = st.sidebar.button("Predecir")
 
 # Selección del método de explicabilidad
-explanation_method = st.sidebar.selectbox(
-    "Método de Explicabilidad",
-    ["LIME", "SHAP", "Integrated Gradients", "Saliency Maps"],
-    index=0,
-)
+# explanation_method = st.sidebar.selectbox(
+#    "Método de Explicabilidad",
+#    ["LIME", "SHAP", "Integrated Gradients", "Saliency Maps"],
+#    index=0,
+# )
 # Botón para generar la explicación
 explicar = st.sidebar.button("Explicar")
 
@@ -258,8 +258,14 @@ if explicar and (st.session_state.prediction is None):
 
 elif explicar:
 
-    st.write(f"### Explicación de {explanation_method}")
+    # st.write(f"### Explicación de {explanation_method}")
+    st.write(f"### Explicación")
+    attr = ig_exp.attribute(input_tensor, target=0)
+    attributions_np = attr.numpy()
+    fig = plot_feature_importances(feature_names, attributions_np)
+    st.pyplot(fig, use_container_width=True)
 
+x = """
     if explanation_method == "LIME":
 
         print("Metodo de explicabilidad LIME")
@@ -327,3 +333,4 @@ elif explicar:
         attributions_np = attr.numpy()
         fig = plot_feature_importances(feature_names, attributions_np)
         st.pyplot(fig, use_container_width=True)
+"""
