@@ -21,6 +21,78 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
+# Definir los datos proporcionados
+data = """
+0= Vacío
+1= Intoxicación exógena
+2= Coma
+3= Trauma craneoencefálico severo
+4= SPO de toracotomía
+5= SPO de laparotomía
+6= SPO de amputación
+7= SPO de neurología
+8= PCR recuperado
+9= Encefalopatía metabólica
+10= Encefalopatía hipóxica
+11= Ahorcamiento incompleto
+12= Insuficiencia cardiaca descompensada
+13= Obstétrica grave
+14= EPOC descompensada
+15= ARDS
+16= BNB-EH
+17= BNB-IH
+18= BNV
+19= Miocarditis
+20= Leptospirosis
+21= Sepsis grave
+22= DMO
+23= Shock séptico
+24= Shock hipovolémico
+25= Shock cardiogénico
+26= IMA
+27= Politraumatizado
+28= Crisis miasténica
+29= Emergencia hipertensiva
+30= Status asmático
+31= Status epileptico
+32= Pancreatitis 
+33= Embolismo graso
+34= Accidente cerebrovascular
+35= Sindrome de apnea del sueño
+36= Sangramiento digestivo
+37= Insuficiencia renal crónica
+38= Insuficiencia renal aguda
+39=Trasplante renal
+40=Guillain Barré
+41=Bloqueo AV
+42=Embolismo obstétrico
+43=Neumonía aspirativa
+44=Síndrome Neuroléptico maligno
+45=Cetoacidosis diabética
+46=Meningitis
+47=Edema pulmonar
+"""
+
+# Procesar los datos y crear los diccionarios
+num_to_desc = {}
+desc_to_num = {}
+
+lines = [line.strip() for line in data.strip().split("\n")]
+
+for line in lines:
+    key_part, value = line.split("=", 1)  # Dividir en el primer '='
+    key = int(key_part.strip())
+    value = value.strip()  # Eliminar espacios alrededor del valor
+    num_to_desc[key] = value
+    desc_to_num[value] = key
+
+# Ejemplo de uso
+# print("Diccionario num_to_desc:")
+# print(num_to_desc)
+# print("\nDiccionario desc_to_num:")
+# print(desc_to_num)
+
+
 st.set_page_config(layout="wide")
 
 # Cargar el modelo fijo
@@ -54,15 +126,21 @@ with open("Explainers/saliency_explainer.pkl", "rb") as archivo:
 # Función para obtener los valores de entrada del usuario
 def get_user_input():
     age = st.sidebar.number_input("Edad", min_value=0, max_value=120, value=20, step=1)
-    diag_ing1 = st.sidebar.number_input(
-        "Diag.Ing1", min_value=0, max_value=20, value=0, step=1
-    )
-    diag_ing2 = st.sidebar.number_input(
-        "Diag.Ing2", min_value=0, max_value=30, value=0, step=1
-    )
-    diag_egr2 = st.sidebar.number_input(
-        "Diag.Egr2", min_value=0, max_value=20, value=0, step=1
-    )
+    diag_ing1 = desc_to_num[
+        st.sidebar.selectbox(
+            label="Diagnostico Ingreso 1", options=list(desc_to_num.keys())
+        )
+    ]
+    diag_ing2 = desc_to_num[
+        st.sidebar.selectbox(
+            label="Diagnostico Ingreso 2", options=list(desc_to_num.keys())
+        )
+    ]
+    diag_egr2 = desc_to_num[
+        st.sidebar.selectbox(
+            label="Diagnostico Egreso 2", options=list(desc_to_num.keys())
+        )
+    ]
     apache = st.sidebar.number_input(
         "APACHE II", min_value=0, max_value=40, value=18, step=1
     )
