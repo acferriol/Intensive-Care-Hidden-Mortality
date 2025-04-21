@@ -10,6 +10,7 @@ from interpret import show
 from interpret.blackbox import ShapKernel
 from interpret import set_visualize_provider
 from interpret.provider import InlineProvider
+from joblib import load
 
 set_visualize_provider(InlineProvider())
 from interpret import show
@@ -97,9 +98,11 @@ st.set_page_config(layout="wide")
 
 # Cargar el modelo fijo
 path = r"./Modelos/"
-model_file_name = "modelo_mlp.pkl"
-with open(rf"{path}{model_file_name}", "rb") as file:
-    model = pickle.load(file)
+# model_file_name = "modelo_mlp.pkl"
+# with open(rf"{path}{model_file_name}", "rb") as file:
+#    model = pickle.load(file)
+model = load("new_workflow.joblib")
+
 
 # Cargar las explicaciones
 # with open("Explainers/lime_explainer_iml.pkl", "rb") as archivo:
