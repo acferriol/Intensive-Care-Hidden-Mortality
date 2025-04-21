@@ -72,6 +72,7 @@ data = """
 45=Cetoacidosis diabética
 46=Meningitis
 47=Edema pulmonar
+48=Otros
 """
 
 # Procesar los datos y crear los diccionarios
