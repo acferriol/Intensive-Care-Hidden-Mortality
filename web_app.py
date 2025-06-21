@@ -22,134 +22,106 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-# Definir los datos proporcionados
+# Define provided data
 data = """
-0= Vacío
-1= Intoxicación exógena
+0= Empty
+1= Exogenous intoxication
 2= Coma
-3= Trauma craneoencefálico severo
-4= SPO de toracotomía
-5= SPO de laparotomía
-6= SPO de amputación
-7= SPO de neurología
-8= PCR recuperado
-9= Encefalopatía metabólica
-10= Encefalopatía hipóxica
-11= Ahorcamiento incompleto
-12= Insuficiencia cardiaca descompensada
-13= Obstétrica grave
-14= EPOC descompensada
+3= Severe traumatic brain injury
+4= Post-thoracotomy
+5= Post-laparotomy
+6= Post-amputation
+7= Post-neurology surgery
+8= Recovered cardiac arrest
+9= Metabolic encephalopathy
+10= Hypoxic encephalopathy
+11= Incomplete hanging
+12= Decompensated heart failure
+13= Severe obstetric condition
+14= Decompensated COPD
 15= ARDS
 16= BNB-EH
 17= BNB-IH
 18= BNV
-19= Miocarditis
+19= Myocarditis
 20= Leptospirosis
-21= Sepsis grave
+21= Severe sepsis
 22= DMO
-23= Shock séptico
-24= Shock hipovolémico
-25= Shock cardiogénico
-26= IMA
-27= Politraumatizado
-28= Crisis miasténica
-29= Emergencia hipertensiva
-30= Status asmático
-31= Status epileptico
+23= Septic shock
+24= Hypovolemic shock
+25= Cardiogenic shock
+26= Myocardial infarction
+27= Polytrauma
+28= Myasthenic crisis
+29= Hypertensive emergency
+30= Status asthmaticus
+31= Status epilepticus
 32= Pancreatitis 
-33= Embolismo graso
-34= Accidente cerebrovascular
-35= Sindrome de apnea del sueño
-36= Sangramiento digestivo
-37= Insuficiencia renal crónica
-38= Insuficiencia renal aguda
-39=Trasplante renal
-40=Guillain Barré
-41=Bloqueo AV
-42=Embolismo obstétrico
-43=Neumonía aspirativa
-44=Síndrome Neuroléptico maligno
-45=Cetoacidosis diabética
-46=Meningitis
-47=Edema pulmonar
-48=Otros
+33= Fat embolism
+34= Stroke
+35= Sleep apnea syndrome
+36= Digestive bleeding
+37= Chronic renal failure
+38= Acute renal failure
+39= Renal transplant
+40= Guillain-Barré
+41= AV block
+42= Obstetric embolism
+43= Aspiration pneumonia
+44= Neuroleptic malignant syndrome
+45= Diabetic ketoacidosis
+46= Meningitis
+47= Pulmonary edema
+48= Others
 """
 
-# Procesar los datos y crear los diccionarios
+# Process data and create dictionaries
 num_to_desc = {}
 desc_to_num = {}
 
 lines = [line.strip() for line in data.strip().split("\n")]
 
 for line in lines:
-    key_part, value = line.split("=", 1)  # Dividir en el primer '='
+    key_part, value = line.split("=", 1)  # Split at first '='
     key = int(key_part.strip())
-    value = value.strip()  # Eliminar espacios alrededor del valor
+    value = value.strip()  # Remove surrounding whitespace
     num_to_desc[key] = value
     desc_to_num[value] = key
 
-# Ejemplo de uso
-# print("Diccionario num_to_desc:")
-# print(num_to_desc)
-# print("\nDiccionario desc_to_num:")
-# print(desc_to_num)
-
-
 st.set_page_config(layout="wide")
 
-# Cargar el modelo fijo
-path = r"./Modelos/"
-# model_file_name = "modelo_mlp.pkl"
-# with open(rf"{path}{model_file_name}", "rb") as file:
-#    model = pickle.load(file)
+# Load fixed model
+path = r"./Models/"
 model = load("new_workflow.joblib")
 
-
-# Cargar las explicaciones
-# with open("Explainers/lime_explainer_iml.pkl", "rb") as archivo:
-#    lime_grafica = pickle.load(archivo)
-# with open("Explainers/shap_explainer_iml.pkl", "rb") as archivo:
-#    shap_grafica = pickle.load(archivo)
-
-
-# try:
-#    with open("Explainers/lime_explainer.pkl", "rb") as archivo:
-#        lime_exp = pickle.load(archivo)
-# except Exception as e:
-#    print(e)
-#    st.error(f"Error al cargar el explicador LIME: {e}")
-
-# with open("Explainers/shap_explainer.pkl", "rb") as archivo:
-#    shap_exp = pickle.load(archivo)
+# Load explanations
 with open("Explainers/ig_explainer.pkl", "rb") as archivo:
     ig_exp = pickle.load(archivo)
-# with open("Explainers/saliency_explainer.pkl", "rb") as archivo:
-#    saliency_exp = pickle.load(archivo)
 
 
-# Función para obtener los valores de entrada del usuario
+# Function to get user input
 def get_user_input():
-    age = st.sidebar.number_input("Edad", min_value=0, max_value=120, value=20, step=1)
+    age = st.sidebar.number_input("Age", min_value=0, max_value=120, value=20, step=1)
     diag_ing1 = desc_to_num[
         st.sidebar.selectbox(
-            label="Diagnostico Ingreso 1", options=list(desc_to_num.keys())
+            label="Admission Diagnosis 1", options=list(desc_to_num.keys())
         )
     ]
     diag_ing2 = desc_to_num[
         st.sidebar.selectbox(
-            label="Diagnostico Ingreso 2", options=list(desc_to_num.keys())
+            label="Admission Diagnosis 2", options=list(desc_to_num.keys())
         )
     ]
     diag_egr2 = desc_to_num[
         st.sidebar.selectbox(
-            label="Diagnostico Egreso 2", options=list(desc_to_num.keys())
+            label="Discharge Diagnosis 2", options=list(desc_to_num.keys())
         )
     ]
     apache = st.sidebar.number_input(
         "APACHE II", min_value=0, max_value=40, value=18, step=1
     )
     tiempo_vam = st.sidebar.number_input(
-        "TiempoVAM", min_value=0, max_value=700, value=30, step=1
+        "Ventilator Time", min_value=1, max_value=200, value=5, step=1
     )
 
     user_data = {
@@ -164,13 +136,20 @@ def get_user_input():
     return features
 
 
-feature_names = ["Edad", "Diag.Ing1", "Diag.Ing2", "Diag.Egr2", "APACHE", "TiempoVAM"]
+feature_names = [
+    "Age",
+    "Adm.Diag1",
+    "Adm.Diag2",
+    "Dis.Diag2",
+    "APACHE",
+    "VentilatorTime",
+]
 
 
 def plot_feature_importances(feature_names, importances):
     """
-    Graficar la importancia de las características con colores diferenciados
-    para contribuciones positivas (naranja) y negativas (azul).
+    Plot feature importance with differentiated colors
+    for positive (orange) and negative (blue) contributions.
     """
     importances = np.array(importances).flatten()
 
@@ -183,158 +162,53 @@ def plot_feature_importances(feature_names, importances):
 
     fig, ax = plt.subplots(figsize=(10, 6))
     ax.barh(attrib_df["Feature"], attrib_df["Importance"], color=colors)
-    ax.set_xlabel("Relevancia")
-    ax.set_title(
-        "Relevancia de las Características (Colores: Naranja=Positiva, Azul=Negativa)"
-    )
+    ax.set_xlabel("Relevance")
+    ax.set_title("Feature Relevance (Colors: Orange=Positive, Blue=Negative)")
     ax.axvline(0, color="red", linestyle="--")
     ax.invert_yaxis()
 
     return fig
 
 
-# Funcion para preprocesar la salida de lime
-def procesar_salida_lime(salida_lime, num_caracteristicas=6):
-    # Crear dos arreglos de ceros del tamaño del número de características
-    relevancias_clase_0 = [0] * num_caracteristicas
-    relevancias_clase_1 = [0] * num_caracteristicas
-
-    # Recorrer las relevancias de ambas clases simultáneamente
-    for (indice_0, relevancia_0), (indice_1, relevancia_1) in zip(
-        salida_lime[0], salida_lime[1]
-    ):
-        relevancias_clase_0[indice_0] = relevancia_0
-        relevancias_clase_1[indice_1] = relevancia_1
-
-    # Devolver las relevancias para ambas clases
-    return [relevancias_clase_0, relevancias_clase_1]
-
-
-# Variables de estado de Streamlit
+# Streamlit state variables
 if "prediction" not in st.session_state:
     st.session_state.prediction = None
     st.session_state.input_df = None
-    # st.session_state.explanation_method = None
 
-# Obtener los valores de entrada del usuario
+# Get user input
 input_df = get_user_input()
 input_df_original = input_df.copy()
 
-# Convierte el DataFrame a un tensor de PyTorch
+# Convert DataFrame to PyTorch tensor
 input_tensor = torch.tensor(input_df.values, dtype=torch.float32)
-# Añade una dimensión extra al tensor
 input_tensor = input_tensor.unsqueeze(0)
 
-st.title("Predicción de no supervivencia al egreso de UCI")
-st.write(
-    "Esta herramienta es de apoyo en la predicción de no supervivencia de pacientes al egreso de UCI."
-)
+st.title("Prediction of Non-Survival at ICU Discharge")
+st.write("This tool supports prediction of patient non-survival at ICU discharge.")
 
-st.write("#### Carcacterísticas del paciente")
+st.write("#### Patient Characteristics")
 st.write(input_df_original)
 
-# Botón para realizar la predicción
-predecir = st.sidebar.button("Predecir")
+# Prediction button
+predict = st.sidebar.button("Predict")
 
-# Selección del método de explicabilidad
-# explanation_method = st.sidebar.selectbox(
-#    "Método de Explicabilidad",
-#    ["LIME", "SHAP", "Integrated Gradients", "Saliency Maps"],
-#    index=0,
-# )
-# Botón para generar la explicación
-explicar = st.sidebar.button("Explicar")
+# Explanation button
+explain = st.sidebar.button("Explain")
 
-
-if predecir:
-    # Realizar la predicción de probabilidad
+if predict:
+    # Calculate probability prediction
     prob = model.predict_proba(input_df)[:, 1][0]
-    st.session_state.prediction = prob  # Guardar la predicción en el estado
+    st.session_state.prediction = prob
 
 if st.session_state.prediction is not None:
-    st.write("### Probabilidad de No Supervivencia")
+    st.write("### Probability of Non-Survival (Cut 50%)")
     st.write(f"##### {st.session_state.prediction:.2%}")
 
-
-if explicar and (st.session_state.prediction is None):
-
-    st.warning("Primero, realice una predicción.")
-
-elif explicar:
-
-    # st.write(f"### Explicación de {explanation_method}")
-    st.write(f"### Explicación")
+if explain and (st.session_state.prediction is None):
+    st.warning("First, make a prediction.")
+elif explain:
+    st.write(f"### Explanation")
     attr = ig_exp.attribute(input_tensor, target=0)
     attributions_np = attr.numpy()
     fig = plot_feature_importances(feature_names, attributions_np)
     st.pyplot(fig, use_container_width=True)
-
-x = """
-    if explanation_method == "LIME":
-
-        print("Metodo de explicabilidad LIME")
-
-        def predict_fn(data):
-            return model.predict_proba(data)
-
-        @st.cache_resource
-        def lime_explain(data_row, _predict_fn, top_labels=2):
-            explanation = lime_exp.explain_instance(data_row, _predict_fn, top_labels)
-            return explanation
-
-        try:
-            # # Tu código aquí
-            # st.write("Antes del if")
-            print("Intentando calcular la explicación con LIME...")
-            explanation = lime_explain(
-                data_row=input_df_original.iloc[0].values,
-                _predict_fn=predict_fn,
-                top_labels=2,
-            )
-            print("Explicación generada exitosamente.")
-
-        except Exception as e:
-            st.write(f"Error encontrado: {e}")
-
-        # with st.spinner('Generando explicación...'):
-        #     explanation = lime_exp.explain_instance(
-        #         data_row=input_df.iloc[0].values,
-        #         predict_fn=model.predict_proba,
-        #         top_labels=2
-        #     )
-        # #     st.write("#### ??")
-        # st.success("Done!")
-        # st.write(explanation.as_map())
-        st.write("Después de la condición if")
-
-        # exp = explanation.as_map()
-        # resultado = procesar_salida_lime(exp)
-        # attr = resultado[1]
-        # attributions_np = attr.array()
-        # fig = plot_feature_importances(feature_names, attributions_np)
-        # st.pyplot(fig, use_container_width=True)
-
-        # html_content = show(lime_grafica.explain_local(input_df.iloc[0].values), 0)
-        #
-        # # Mostrar HTML en Streamlit
-        # st.markdown(html_content, unsafe_allow_html=True)
-
-    # elif explanation_method == "SHAP":
-    # Generar explicación de SHAP
-    # show(shap_grafica.explain_local(input_df), 0)
-    # st.write("### Explicación de Mapas de Silencia")
-
-    elif explanation_method == "Integrated Gradients":
-        attr = ig_exp.attribute(input_tensor, target=0)
-
-        attributions_np = attr.numpy()
-        fig = plot_feature_importances(feature_names, attributions_np)
-        st.pyplot(fig, use_container_width=True)
-
-    elif explanation_method == "Saliency Maps":
-        attr = saliency_exp.attribute(input_tensor, target=0, abs=False)
-
-        attributions_np = attr.numpy()
-        fig = plot_feature_importances(feature_names, attributions_np)
-        st.pyplot(fig, use_container_width=True)
-"""
