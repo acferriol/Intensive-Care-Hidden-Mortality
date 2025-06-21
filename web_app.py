@@ -178,6 +178,15 @@ if "prediction" not in st.session_state:
 # Get user input
 input_df = get_user_input()
 input_df_original = input_df.copy()
+input_df_original.rename(columns={
+    "Edad": "Age",
+    "Diag.Ing1": "Adm.Diag1",
+    "Diag.Ing2": "Adm.Diag2",
+    "Diag.Egr2": "Dis.Diag2",
+    "APACHE": "APACHE",
+    "TiempoVAM": "VentilatorTime",
+}, inplace=True)
+
 
 # Convert DataFrame to PyTorch tensor
 input_tensor = torch.tensor(input_df.values, dtype=torch.float32)
