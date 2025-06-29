@@ -3,3 +3,4 @@
 *.xls
 *.xlsx
 /venv
+.env
