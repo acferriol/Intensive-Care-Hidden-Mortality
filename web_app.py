@@ -11,6 +11,9 @@ from interpret.blackbox import ShapKernel
 from interpret import set_visualize_provider
 from interpret.provider import InlineProvider
 from joblib import load
+import os
+import dotenv
+import openai
 
 set_visualize_provider(InlineProvider())
 from interpret import show
@@ -178,14 +181,17 @@ if "prediction" not in st.session_state:
 # Get user input
 input_df = get_user_input()
 input_df_original = input_df.copy()
-input_df_original.rename(columns={
-    "Edad": "Age",
-    "Diag.Ing1": "Adm.Diag1",
-    "Diag.Ing2": "Adm.Diag2",
-    "Diag.Egr2": "Dis.Diag2",
-    "APACHE": "APACHE",
-    "TiempoVAM": "VentilatorTime",
-}, inplace=True)
+input_df_original.rename(
+    columns={
+        "Edad": "Age",
+        "Diag.Ing1": "Adm.Diag1",
+        "Diag.Ing2": "Adm.Diag2",
+        "Diag.Egr2": "Dis.Diag2",
+        "APACHE": "APACHE",
+        "TiempoVAM": "VentilatorTime",
+    },
+    inplace=True,
+)
 
 
 # Convert DataFrame to PyTorch tensor
@@ -221,3 +227,67 @@ elif explain:
     attributions_np = attr.numpy()
     fig = plot_feature_importances(feature_names, attributions_np)
     st.pyplot(fig, use_container_width=True)
+
+    # LLMs
+    base_prompt = """You are helping users understand an ML model’s prediction. Given an explanation and information about the model, convert
+    the explanation into a human-readable narrative."""
+
+    definitions = """
+    Follow the following format.
+    Context: What the ML model predicts
+    Explanation: Explanation of an ML model’s prediction
+    Explanation format: Format the explanation is given in
+    Narrative: Human-readable narrative version of the explanation
+    """
+
+    explanations = ""
+
+    x = input_tensor.numpy()
+
+    attributions_np = attributions_np.flatten()
+    x = x.flatten()
+
+    print(attributions_np)
+    print(x)
+
+    for i in range(len(feature_names)):
+        explanations += f"({feature_names[i]}, {x[i]}, {attributions_np[i]})"
+        if i < len(feature_names):
+            explanations += ", "
+
+    explanations += "\n"
+    explanations += """
+    Explanation format: (feature_name, feature_value, SHAP feature contribution)
+    Context: The ML model predicts hidden mortality on Intensive Care Unit
+    """
+
+    output = """
+    Please provide the output field Narrative. Do so immediately, without additional content before or after, and precisely as the
+    format above shows. Begin with only the field Narrative.
+    """
+
+    apikey = dotenv.get_key(dotenv_path=".env", key_to_get="API-KEY")
+
+    client = openai.OpenAI(
+        base_url="https://openrouter.ai/api/v1",
+        api_key=apikey,
+    )
+
+    completion = client.chat.completions.create(
+        extra_body={},
+        model="mistralai/mistral-small-3.2-24b-instruct:free",
+        messages=[
+            {
+                "role": "user",
+                "content": [
+                    {
+                        "type": "text",
+                        "text": base_prompt + definitions + explanations + output,
+                    },
+                ],
+            }
+        ],
+        temperature=0.8,
+    )
+    print(completion.choices[0].message.content)
+    st.write(completion.choices[0].message.content[10:])
