@@ -266,7 +266,7 @@ elif explain:
     format above shows. Begin with only the field Narrative.
     """
 
-    apikey = dotenv.get_key(dotenv_path=".env", key_to_get="API-KEY")
+    apikey = dotenv.get_key(dotenv_path=".env", key_to_get="API_KEY")
 
     client = openai.OpenAI(
         base_url="https://openrouter.ai/api/v1",
