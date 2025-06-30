@@ -20,8 +20,9 @@ set_visualize_provider(InlineProvider())
 from interpret import show
 import torch
 import torch.nn as nn
-from captum.attr import IntegratedGradients
-from captum.attr import Saliency
+
+# from captum.attr import IntegratedGradients
+# from captum.attr import Saliency
 import numpy as np
 import matplotlib.pyplot as plt
 
