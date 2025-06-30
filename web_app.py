@@ -4,7 +4,8 @@ import cloudpickle
 import streamlit as st
 import lime.lime_tabular
 import shap
-import captum
+
+# import captum
 from interpret.blackbox import LimeTabular
 from interpret import show
 from interpret.blackbox import ShapKernel
