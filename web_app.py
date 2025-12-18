@@ -4,6 +4,7 @@ import cloudpickle
 import streamlit as st
 import lime.lime_tabular
 import shap
+import google.generativeai as genai
 
 # import captum
 from interpret.blackbox import LimeTabular
@@ -224,72 +225,80 @@ if st.session_state.prediction is not None:
 if explain and (st.session_state.prediction is None):
     st.warning("First, make a prediction.")
 elif explain:
-    st.write(f"### Explanation")
+    st.write(f"### Model Explanation")
+
+    # 1. Calculate Feature Importances
     attr = ig_exp.attribute(input_tensor, target=0)
     attributions_np = attr.numpy()
+
+    # 2. Visualize the importance
     fig = plot_feature_importances(feature_names, attributions_np)
     st.pyplot(fig, use_container_width=True)
 
-    # LLMs
-    base_prompt = """You are helping users understand an ML model’s prediction. Given an explanation and information about the model, convert
-    the explanation into a human-readable narrative."""
+    # --- Gemini API Configuration ---
+    # Ensure you have GEMINI_API_KEY in your .env file
+    apikey = dotenv.get_key(dotenv_path=".env", key_to_get="GEMINI_API_KEY")
+    genai.configure(api_key=apikey)
+
+    # --- Prompt Construction (ICU & Hidden Mortality Context) ---
+    base_prompt = """You are a specialist in Intensive Care Medicine and clinical data science. 
+    Your goal is to help clinicians understand why an AI model has flagged a patient for 'hidden mortality' risk—a situation where 
+    the patient's clinical deterioration might not be immediately obvious from bedside observation alone."""
 
     definitions = """
-    Follow the following format.
-    Context: What the ML model predicts
-    Explanation: Explanation of an ML model’s prediction
-    Explanation format: Format the explanation is given in
-    Narrative: Human-readable narrative version of the explanation
+    Strictly follow this format:
+    Context: Predicting hidden mortality in the Intensive Care Unit (ICU).
+    Explanation: Analysis of the clinical variables driving the risk assessment.
+    Input format: (Clinical Parameter, Observed Value, Feature Importance Score).
+    Narrative: A professional, human-readable clinical synthesis of the explanation, focusing on the most impactful features.
     """
 
-    explanations = ""
-
-    x = input_tensor.numpy()
-
+    # Flatten tensors for processing
+    x = input_tensor.numpy().flatten()
     attributions_np = attributions_np.flatten()
-    x = x.flatten()
+    explanations_data = ""
 
-    print(attributions_np)
-    print(x)
-
+    # Prepare the data string for the prompt
     for i in range(len(feature_names)):
-        explanations += f"({feature_names[i]}, {x[i]}, {attributions_np[i]})"
-        if i < len(feature_names):
-            explanations += ", "
+        if (
+            feature_names[i] == "Adm.Diag1"
+            or feature_names[i] == "Adm.Diag2"
+            or feature_names[i] == "Dis.Diag2"
+        ):
+            patient_value_desc = num_to_desc[int(x[i])]
+            explanations_data += (
+                f"({feature_names[i]}, {patient_value_desc}, {attributions_np[i]})"
+            )
+        else:
+            explanations_data += f"({feature_names[i]}, {x[i]}, {attributions_np[i]})"
+        if i < len(feature_names) - 1:
+            explanations_data += ", "
 
-    explanations += "\n"
-    explanations += """
-    Explanation format: (feature_name, feature_value, SHAP feature contribution)
-    Context: The ML model predicts hidden mortality on Intensive Care Unit
+    full_context = f"""
+    Input Data: {explanations_data}
+    Input format: (Feature Name, Patient Value, Feature Importance)
+    Context: The model identifies hidden mortality patterns in critically ill patients.
     """
 
-    output = """
-    Please provide the output field Narrative. Do so immediately, without additional content before or after, and precisely as the
-    format above shows. Begin with only the field Narrative.
+    output_instruction = """
+    Provide ONLY the 'Narrative' field. Do so immediately, without any introductory remarks or conversational filler. 
+    Begin your response exactly with the word 'Narrative:'.
     """
 
-    apikey = dotenv.get_key(dotenv_path=".env", key_to_get="API_KEY")
+    # --- Gemini API Call ---
+    # 'gemini-1.5-flash' is fast and cost-effective; use 'gemini-1.5-pro' for more complex medical reasoning.
+    model = genai.GenerativeModel("gemini-2.5-flash-lite")
 
-    client = openai.OpenAI(
-        base_url="https://openrouter.ai/api/v1",
-        api_key=apikey,
+    prompt_final = base_prompt + definitions + full_context + output_instruction
+
+    response = model.generate_content(
+        prompt_final,
+        generation_config=genai.types.GenerationConfig(
+            temperature=0.7,  # Balanced for professional yet descriptive output
+        ),
     )
 
-    completion = client.chat.completions.create(
-        extra_body={},
-        model="mistralai/mistral-small-3.2-24b-instruct:free",
-        messages=[
-            {
-                "role": "user",
-                "content": [
-                    {
-                        "type": "text",
-                        "text": base_prompt + definitions + explanations + output,
-                    },
-                ],
-            }
-        ],
-        temperature=0.8,
-    )
-    print(completion.choices[0].message.content)
-    st.write(completion.choices[0].message.content[10:])
+    # --- Displaying the Output ---
+    # Extracting text and removing the "Narrative:" prefix for a cleaner UI
+    narrative_output = response.text.replace("Narrative:", "").strip()
+    st.info(narrative_output)
