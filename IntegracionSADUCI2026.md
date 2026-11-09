@@ -1,218 +1,218 @@
-# Traslado del prototipo a SADUCI: integración existente y actualización pendiente
+# Moving the prototype into SADUCI: existing integration and remaining updates
 
-Fecha: 9 de noviembre de 2026.
+Date: November 9, 2026.
 
-Repositorios examinados: `Intensive-Care-Hidden-Mortality` y `../saduci`.
+Repositories examined: `Intensive-Care-Hidden-Mortality` and `../saduci`.
 
-## 1. Dictamen
+## 1. Assessment
 
-La integración básica del modelo ya existe. SADUCI dispone de un servicio de predicción, contratos compartidos, persistencia, explicaciones y generación de narrativas. Además, su copia de `new_workflow.joblib` es idéntica a la de este repositorio. El trabajo recomendado consiste en consolidar esa integración, corregir diferencias semánticas y establecer un proceso reproducible para futuras actualizaciones.
+Basic model integration already exists. SADUCI has a prediction service, shared contracts, persistence, explanations, and narrative generation. Its copy of `new_workflow.joblib` is identical to the one in this repository. The recommended work is to consolidate that integration, correct semantic differences, and establish a reproducible process for future updates.
 
-Se propone mantener este repositorio como espacio de investigación y entrenamiento y SADUCI como sistema de ejecución y ayuda a la valoración clínica. Las nuevas versiones se transferirían como paquetes de modelo verificables, con sus contratos y evidencia de evaluación. La interfaz asistencial seguiría siendo la de SADUCI.
+The proposed arrangement keeps this repository as the research and training workspace and SADUCI as the execution system and clinical decision aid. New versions would be transferred as verifiable model packages with contracts and evaluation evidence. SADUCI would remain the clinical interface.
 
-Este documento describe el traslado de capacidades del prototipo al sistema SADUCI y planifica la actualización de esa integración. El destino es el repositorio público [coslatte/saduci](https://github.com/coslatte/saduci). Esta contribución no modifica los servicios de SADUCI, no despliega modelos y no acredita validación clínica. Se complementa con [Summary2026.md](Summary2026.md), que recoge el trabajo experimental de origen.
+This document describes the transfer of prototype capabilities into SADUCI and plans updates to that integration. The destination is the public [coslatte/saduci](https://github.com/coslatte/saduci) repository. This contribution does not change SADUCI services, deploy models, or establish clinical validation. It complements [Summary2026.md](Summary2026.md), which records the original experimental work.
 
-### 1.1. Origen, destino y sentido del traslado
+### 1.1. Origin, destination, and meaning of the transfer
 
-El punto de partida es [acferriol/Intensive-Care-Hidden-Mortality](https://github.com/acferriol/Intensive-Care-Hidden-Mortality), que conserva los cuadernos de investigación, modelos, explicadores y el prototipo Streamlit. El destino de la integración funcional es [coslatte/saduci](https://github.com/coslatte/saduci), un sistema con usuarios, pacientes, predicción, simulación e historial.
+The starting point is [acferriol/Intensive-Care-Hidden-Mortality](https://github.com/acferriol/Intensive-Care-Hidden-Mortality), which preserves research notebooks, models, explainers, and the Streamlit prototype. The destination for functional integration is [coslatte/saduci](https://github.com/coslatte/saduci), a system covering users, patients, prediction, simulation, and record history.
 
-El traslado documentado consiste en incorporar la capacidad predictiva a los servicios y recorridos de SADUCI. No equivale a copiar íntegramente los cuadernos, reemplazar el repositorio de origen ni retirar automáticamente su aplicación. La procedencia experimental permanece en este proyecto; la ejecución integrada reside en SADUCI. Esa separación es la organización recomendada para continuar el trabajo, no una política de mantenimiento acordada entre ambos repositorios.
+The documented transfer incorporates predictive capability into SADUCI services and workflows. It does not mean copying every notebook, replacing the original repository, or automatically retiring its application. Experimental provenance remains in this project; integrated execution resides in SADUCI. This separation is the recommended arrangement for continued work, not a maintenance policy agreed between both repositories.
 
-| Elemento de origen | Destino en SADUCI | Estado y alcance comprobados |
+| Original element | Destination in SADUCI | Verified status and scope |
 | --- | --- | --- |
-| `new_workflow.joblib` | `apps/core/src/prediction/models/v1/new_workflow.joblib` | Incorporado; ambos archivos tienen el mismo SHA-256. |
-| Preparación del DataFrame y predicción en `web_app.py` | `prediction/app/services/inference.py` | Adaptado a solicitudes del servicio con las mismas seis variables; la paridad de ejecución queda por comprobar. |
-| Captura y presentación en Streamlit | Plataforma web, BFF, gateway y servicio `prediction` | SADUCI dispone de un recorrido integrado documentado; no se comprobó interacción de navegador durante esta revisión. |
-| Explicador de Integrated Gradients en `Explainers/` | Impacto local por referencia en `inference.py` | El destino utiliza otro cálculo; no se ha demostrado traslado equivalente de los explicadores originales. |
-| Narrativa Gemini dentro de `web_app.py` | `prediction/app/services/narrative.py` y `narrative_model.py` | Capacidad adaptada a proveedores y ejecución local; no se realizaron llamadas de generación para verificarla. |
-| Cuadernos y resultados históricos | Evidencia de investigación en el repositorio de origen | No se propone ejecutarlos como parte de una petición clínica ni se acredita que hayan sido migrados a SADUCI. |
-| Consulta puntual del prototipo | Registros en `prediction_db` | SADUCI añade persistencia y autoría; falta completar procedencia de versión y vínculo con la explicación. |
+| `new_workflow.joblib` | `apps/core/src/prediction/models/v1/new_workflow.joblib` | Incorporated; both files have the same SHA-256. |
+| DataFrame preparation and prediction in `web_app.py` | `prediction/app/services/inference.py` | Adapted to service requests using the same six features; execution parity remains to be tested. |
+| Streamlit input and presentation | Web platform, BFF, gateway, and `prediction` service | SADUCI has a documented integrated workflow; browser interaction was not verified during this review. |
+| Integrated Gradients explainer in `Explainers/` | Local reference impact in `inference.py` | The destination uses a different calculation; equivalent transfer of the original explainers has not been demonstrated. |
+| Gemini narrative inside `web_app.py` | `prediction/app/services/narrative.py` and `narrative_model.py` | Adapted to provider selection and local execution; generation requests were not made to verify it. |
+| Notebooks and historical results | Research evidence in the original repository | They are not proposed as part of a clinical request, and their migration into SADUCI has not been established. |
+| One-off prototype queries | Records in `prediction_db` | SADUCI adds persistence and authorship; model-version provenance and explanation linkage still need completion. |
 
-Hay dos movimientos distintos. El primero es la integración funcional hacia SADUCI, cuyo estado y brechas se describen aquí. El segundo es la contribución de esta documentación al repositorio de origen mediante el fork [coslatte/Intensive-Care-Hidden-Mortality-SADUCI-Integration](https://github.com/coslatte/Intensive-Care-Hidden-Mortality-SADUCI-Integration) y el [pull request #6](https://github.com/acferriol/Intensive-Care-Hidden-Mortality/pull/6). Ese pull request incorpora informes, sin mover código de ejecución ni modificar el despliegue de ninguno de los proyectos.
+There are two distinct transfers. The first is functional integration into SADUCI, whose current state and gaps are described here. The second contributes this documentation to the original repository through the [coslatte/Intensive-Care-Hidden-Mortality-SADUCI-Integration](https://github.com/coslatte/Intensive-Care-Hidden-Mortality-SADUCI-Integration) fork and [pull request #6](https://github.com/acferriol/Intensive-Care-Hidden-Mortality/pull/6). That pull request adds reports without moving runtime code or changing either project's deployment.
 
-La planificación posterior parte de lo ya integrado. Su objetivo es completar la correspondencia de entradas, explicaciones, versiones y registros antes de promover un modelo actualizado. No declara finalizado el traslado completo del proyecto ni anuncia el archivo del repositorio original.
+The plan builds on existing integration. Its purpose is to align inputs, explanations, versions, and records before promoting an updated model. It does not declare the entire project transfer complete or announce archival of the original repository.
 
-## 2. Alcance y método de revisión
+## 2. Review scope and method
 
-Se inspeccionaron las instrucciones, documentación arquitectónica y fuentes del servicio de predicción de SADUCI, junto con sus contratos, carga de modelos, generación narrativa, configuración, entidades y pruebas relacionadas. Se utilizó el índice de código para localizar símbolos y trazar el recorrido de explicación. Las rutas principales consultadas presentan coincidencia de metadatos con el índice; la comprobación de cobertura es indicativa y no garantiza exhaustividad.
+The review examined SADUCI instructions, architecture documentation, prediction-service sources, contracts, model loading, narrative generation, configuration, entities, and related tests. The code index was used to locate symbols and trace explanation flow. Main queried paths matched index metadata; coverage checks are indicative and do not guarantee completeness.
 
-Se compararon los artefactos mediante SHA-256. No se deserializaron modelos ni se ejecutaron entrenamiento, pruebas del backend, pruebas de interfaz, contenedores o servicios de lenguaje. La revisión del frontend se limita a documentación y localización de puntos de llamada; su comportamiento interactivo deberá verificarse durante la implementación.
+Artifacts were compared using SHA-256. Models were not deserialized, and training, backend tests, interface tests, containers, and language services were not executed. Frontend review was limited to documentation and locating call sites; interactive behavior must be verified during implementation.
 
-El punto de referencia de SADUCI es el commit `0553b3b`, del 6 de noviembre de 2026. Su árbol de trabajo ya tenía una modificación en `apps/core/compose.yaml`. Las observaciones sobre Compose describen el archivo local examinado y deberán contrastarse con la versión que finalmente se integre.
+The SADUCI reference is commit `0553b3b`, dated November 6, 2026. Its working tree already contained a change to `apps/core/compose.yaml`. Compose observations describe the local file examined and must be checked against the version eventually integrated.
 
-## 3. Estado comprobado de la integración
+## 3. Verified integration state
 
-### 3.1. Modelo ya compartido
+### 3.1. The model is already shared
 
-Los siguientes archivos tienen el mismo SHA-256:
+These files have the same SHA-256:
 
-- `new_workflow.joblib` en este repositorio.
+- `new_workflow.joblib` in this repository.
 - `../saduci/apps/core/src/prediction/models/v1/new_workflow.joblib`.
 
 ```text
 b58bcf14ff4ad023c608861323bcabca5fa5d9250058af9f1ed1d0e1cf1923ad
 ```
 
-La identidad binaria elimina la necesidad de una primera copia o conversión del modelo. No demuestra que ambos entornos produzcan resultados iguales, ya que aún deben verificarse versiones, transformaciones y entradas.
+Binary identity removes the need for an initial model copy or conversion. It does not establish equal results across environments: dependency versions, transformations, and inputs still need verification.
 
-### 3.2. Topología que debe conservarse
+### 3.2. Topology to preserve
 
-La arquitectura documentada de SADUCI utiliza una plataforma Next.js y servicios FastAPI, con un gateway como frontera común. Cada servicio de datos conserva su propia base PostgreSQL.
+SADUCI's documented architecture uses a Next.js platform and FastAPI services, with a gateway as their shared boundary. Each data service retains its own PostgreSQL database.
 
 ```mermaid
 flowchart LR
-    U[Personal clínico] --> P[Plataforma SADUCI]
-    P --> B[BFF de Next.js]
+    U[Clinical staff] --> P[SADUCI platform]
+    P --> B[Next.js BFF]
     B --> G[API Gateway]
-    G --> A[Usuarios]
-    G --> C[Pacientes]
+    G --> A[Users]
+    G --> C[Patients]
     G --> M[Prediction Service]
     G --> S[Simulation Service]
     M --> D[(prediction_db)]
-    M --> F[Pipeline ML versionado]
-    M --> N[Narrativa configurada]
+    M --> F[Versioned ML pipeline]
+    M --> N[Configured narrative provider]
 ```
 
-La integración de mortalidad pertenece a `Prediction Service`, en el puerto interno 7003. El navegador debe seguir accediendo por el BFF y el gateway. No se propone añadir un acceso directo a Streamlit ni conectar el navegador al servicio interno.
+Mortality integration belongs in `Prediction Service`, on internal port 7003. The browser should continue through the BFF and gateway. Direct Streamlit access or browser connections to the internal service are not proposed.
 
-Referencia: [arquitectura de SADUCI](https://github.com/coslatte/saduci/blob/0553b3b0e82dcb3584b6662e1417a070530879df/docs/sistema/ARCHITECTURE.md). Algunas notas finales de esa documentación describen mecanismos antiguos de migración, mientras que las instrucciones actuales del backend y el Dockerfile indican Alembic. Para planificar cambios prevalecen el código y las instrucciones vigentes.
+Reference: [SADUCI architecture](https://github.com/coslatte/saduci/blob/0553b3b0e82dcb3584b6662e1417a070530879df/docs/sistema/ARCHITECTURE.md). Some closing notes in that document describe older migration mechanisms, while current backend instructions and the Dockerfile specify Alembic. Planning follows the code and current instructions.
 
-### 3.3. Capacidades presentes
+### 3.3. Existing capabilities
 
-| Capacidad | Estado observado | Consecuencia para la planificación |
+| Capability | Observed state | Planning implication |
 | --- | --- | --- |
-| Inferencia | Carga de `joblib`, conversión a DataFrame y `predict_proba`. | Verificar y versionar el flujo existente. |
-| Entradas | Las mismas seis variables del prototipo. | Reconciliar sus restricciones y unidades. |
-| Predicción persistida | Guarda características, resultado y autoría. | Añadir procedencia de modelo y contrato. |
-| Explicación | Sustitución de una variable por una referencia. | Declarar correctamente el algoritmo efectivo. |
-| Narrativa | Proveedores `stub`, `embedded`, `local`, `gemini` y `huggingface`. | Reutilizar los adaptadores existentes. |
-| Modelo narrativo embebido | Carga local con `llama_cpp`; activo descargable con checksum. | Separar su disponibilidad de la inferencia ML. |
-| Contratos | Pydantic en `shared_core/schemas/prediction.py`. | Cambiar contratos y consumidores de forma coordinada. |
-| Pruebas | Casos de carga, esquemas, endpoints y fallo de persistencia. | Ampliar comportamiento observable y paridad. |
+| Inference | `joblib` loading, DataFrame conversion, and `predict_proba`. | Verify and version the existing workflow. |
+| Inputs | The same six prototype features. | Reconcile constraints and units. |
+| Persisted prediction | Stores features, result, and authorship. | Add model and contract provenance. |
+| Explanation | Replaces one feature at a time with a reference value. | Report the actual algorithm accurately. |
+| Narrative | `stub`, `embedded`, `local`, `gemini`, and `huggingface` providers. | Reuse existing adapters. |
+| Embedded narrative model | Local `llama_cpp` loading and a downloadable asset with checksum. | Separate its availability from ML inference. |
+| Contracts | Pydantic in `shared_core/schemas/prediction.py`. | Update contracts and consumers together. |
+| Tests | Loading, schema, endpoint, and persistence-failure cases. | Extend observable behavior and parity coverage. |
 
-Fuentes: `../saduci/apps/core/src/prediction/app/services/ml_model.py:38`, `inference.py:20`, `prediction_service.py:126`, `narrative.py:405`, `narrative_model.py:25` y `../saduci/apps/core/tests/prediction/test_prediction_api.py:79`. Las líneas son orientativas para este estado del árbol; los nombres de funciones son la referencia estable.
+Sources: `../saduci/apps/core/src/prediction/app/services/ml_model.py:38`, `inference.py:20`, `prediction_service.py:126`, `narrative.py`, `narrative_model.py:25`, and `../saduci/apps/core/tests/prediction/test_prediction_api.py:79`. Line numbers refer to the reviewed tree; function names provide more stable references.
 
-## 4. Brechas que debe resolver la actualización
+## 4. Gaps the update must resolve
 
-### 4.1. Restricciones distintas sobre los mismos datos
+### 4.1. Different constraints on the same inputs
 
-Streamlit admite edad entre 0 y 120, APACHE entre 0 y 40 y tiempo de ventilación entre 1 y 200. Ofrece el catálogo diagnóstico de códigos 0 a 48.
+Streamlit accepts age from 0 to 120, APACHE from 0 to 40, and ventilation duration from 1 to 200. It offers diagnosis codes 0 through 48.
 
-SADUCI exige actualmente estos rangos en `PlatformPredictionRequest`:
+SADUCI currently requires these ranges in `PlatformPredictionRequest`:
 
-| Campo | Rango actual en SADUCI |
+| Field | Current SADUCI range |
 | --- | --- |
-| `edad` | 14 a 61 |
-| `diag_ing1` | 1 a 20 |
-| `diag_ing2` | 0 a 40 |
-| `diag_egr2` | 18 a 40 |
-| `apache` | 18 a 40 |
-| `tiempo_vam` | 18 a 40 |
+| `edad` | 14 to 61 |
+| `diag_ing1` | 1 to 20 |
+| `diag_ing2` | 0 to 40 |
+| `diag_egr2` | 18 to 40 |
+| `apache` | 18 to 40 |
+| `tiempo_vam` | 18 to 40 |
 
-Fuente: `../saduci/apps/core/src/shared_core/schemas/prediction.py:39` y `../saduci/apps/core/src/prediction/app/services/config.py:20`.
+Sources: `../saduci/apps/core/src/shared_core/schemas/prediction.py:39` and `../saduci/apps/core/src/prediction/app/services/config.py:20`.
 
-No se debe ampliar automáticamente el esquema hasta los límites de Streamlit ni interpretar los extremos de una muestra como límites clínicos universales. Primero hay que identificar la población y el dominio de entrada realmente evaluados. La decisión resultante debe distinguir validez de formato, existencia de un código y pertenencia al dominio evaluado.
+The schema should not automatically be widened to Streamlit limits, nor should sample extremes be treated as universal clinical boundaries. First identify the population and input domain actually evaluated. The resulting decision must distinguish format validity, code existence, and membership in the evaluated domain.
 
-Por ejemplo, una edad entera válida puede quedar fuera de la población estudiada. El sistema debe poder informar esa situación sin recortar el valor o inventar una probabilidad sustituta.
+For example, an integer age can be structurally valid but outside the studied population. The system should report that condition without clipping the input or inventing a substitute probability.
 
-### 4.2. Catálogo visible y códigos del modelo
+### 4.2. Display catalog and model codes
 
-El servicio conserva un mapa estático de códigos 0 a 48 para presentar explicaciones y también entidades de catálogo en base de datos. Un identificador autoincremental de catálogo no debe asumirse equivalente al código usado durante el entrenamiento.
+The service retains a static 0–48 code map for explanation display and database catalog entities. An auto-incremented catalog identifier must not be assumed equivalent to a training code.
 
-Fuentes: `../saduci/apps/core/src/prediction/app/services/config.py:33`, `../saduci/apps/core/src/prediction/app/models/entities.py:27` y `../saduci/apps/core/src/prediction/app/services/diagnoses.py:10`.
+Sources: `../saduci/apps/core/src/prediction/app/services/config.py:33`, `../saduci/apps/core/src/prediction/app/models/entities.py:27`, and `../saduci/apps/core/src/prediction/app/services/diagnoses.py:10`.
 
-La actualización debe construir una tabla de correspondencias verificable, con código estable de entrenamiento, etiqueta clínica y versión del catálogo. El contrato debe indicar cuáles códigos son admisibles en cada variable. Las traducciones pueden cambiar sin cambiar el significado del código.
+The update should establish a verifiable mapping with a stable training code, clinical label, and catalog version. The contract must specify allowed codes for each feature. Translations may change without changing a code's meaning.
 
-### 4.3. Métodos de explicación anunciados y ejecutados
+### 4.3. Requested and executed explanation methods
 
-`PlatformExplanationRequest` acepta LIME, SHAP, gradientes integrados, mapas de saliencia e impacto local por referencia. Sin embargo, `platform_feature_importances(request, _method)` no utiliza el método para seleccionar un algoritmo: reemplaza cada variable por una referencia y vuelve a calcular la probabilidad. `explain_platform_prediction` devuelve el método solicitado.
+`PlatformExplanationRequest` accepts LIME, SHAP, Integrated Gradients, Saliency Maps, and local reference impact. However, `platform_feature_importances(request, _method)` does not use the method to select an algorithm: it replaces each feature with a reference and recalculates probability. `explain_platform_prediction` returns the requested method name.
 
-Fuentes: `../saduci/apps/core/src/shared_core/schemas/prediction.py:73`, `../saduci/apps/core/src/prediction/app/services/inference.py:71` y `../saduci/apps/core/src/prediction/app/services/prediction_service.py:162`.
+Sources: `../saduci/apps/core/src/shared_core/schemas/prediction.py:73`, `../saduci/apps/core/src/prediction/app/services/inference.py:71`, and `../saduci/apps/core/src/prediction/app/services/prediction_service.py:162`.
 
-La primera actualización debe exponer honestamente el impacto local por referencia y rechazar métodos no implementados. Si posteriormente se añade SHAP o LIME, deberán ejecutarse realmente sobre el pipeline servido y declarar versión y configuración.
+The first update should accurately expose local reference impact and reject unimplemented methods. If SHAP or LIME is added later, it must actually run against the served pipeline and declare its version and configuration.
 
-Los explicadores serializados de este repositorio no se trasladarán automáticamente. Antes de reutilizarlos debe demostrarse que corresponden al mismo estimador y al mismo preprocesamiento. Los métodos de gradiente requieren además una representación diferenciable equivalente, cuya paridad no está establecida con el pipeline actual.
+Serialized explainers from this repository should not be transferred automatically. Reuse first requires demonstrating correspondence with the same estimator and preprocessing. Gradient methods also require an equivalent differentiable representation; parity with the current pipeline has not been established.
 
-### 4.4. Referencias para variables categóricas
+### 4.4. References for categorical features
 
-`feature_baseline` calcula el punto medio de los límites numéricos. En un diagnóstico codificado, el punto medio identifica otra categoría; no representa una media clínica. Incluso cuando el código existe, su elección necesita justificación.
+`feature_baseline` calculates the midpoint of numerical limits. For an encoded diagnosis, that midpoint identifies another category rather than a clinical average. Even an existing code requires a justified choice.
 
-Fuente: `../saduci/apps/core/src/prediction/app/services/inference.py:66`.
+Source: `../saduci/apps/core/src/prediction/app/services/inference.py:66`.
 
-Se propone un perfil de referencias versionado. Para cada diagnóstico deberá declarar una categoría válida y su motivo, o utilizar una estrategia de referencia compatible con el método elegido. No se asignará el código 0 por defecto a campos donde no sea válido.
+A versioned reference profile is proposed. For each diagnosis, it should declare a valid category and rationale, or use a reference strategy compatible with the selected method. Code 0 should not become the default for fields where it is invalid.
 
-### 4.5. Unidades y momento de la predicción
+### 4.5. Units and prediction time
 
-Los cuadernos nuevos convierten el tiempo de ventilación del conjunto de campo dividiendo entre 24. La integración debe establecer una unidad canónica y realizar una sola conversión en la frontera de entrada.
+Newer notebooks convert field-dataset ventilation duration by dividing it by 24. Integration must establish a canonical unit and perform conversion once at the input boundary.
 
-El modelo también requiere un diagnóstico de egreso. Si el caso de uso pretende predecir durante el ingreso o antes de que ese diagnóstico exista, el contrato actual no satisface ese objetivo. Deben mantenerse separados un modelo para valoración al egreso y un eventual modelo temprano, entrenado únicamente con información disponible en su momento de uso.
+The model also requires a discharge diagnosis. If the intended use is prediction during admission or before that diagnosis exists, the current contract does not meet that objective. A discharge-assessment model must remain distinct from any early-prediction model trained only with information available at its intended prediction time.
 
-Esta es una condición de diseño derivada de las variables requeridas, no una afirmación sobre el instante en que se registró cada observación original.
+This is a design condition derived from required features, not a claim about when each original observation was recorded.
 
-### 4.6. Procedencia y persistencia del resultado
+### 4.6. Result provenance and persistence
 
-`PredictionRecord` conserva `model_name`, entradas, resultado, probabilidad bajo el nombre `confidence`, usuario y fecha. No declara columnas específicas para versión del modelo, checksum o versión del esquema de entrada.
+`PredictionRecord` retains `model_name`, inputs, result, probability under `confidence`, user, and date. It does not declare dedicated columns for model version, checksum, or input-schema version.
 
-Fuente: `../saduci/apps/core/src/prediction/app/models/entities.py:11`.
+Source: `../saduci/apps/core/src/prediction/app/models/entities.py:11`.
 
-La creación desde plataforma devuelve una respuesta con `persisted=False` cuando falla el guardado. Se debe conservar esa diferencia entre haber calculado un resultado y haberlo registrado. También conviene aclarar que la probabilidad de fallecimiento no constituye una medida independiente de confianza o incertidumbre.
+Platform creation returns `persisted=False` when saving fails. The distinction between a calculated result and a recorded result must remain visible. Mortality probability should also be distinguished from a separate confidence or uncertainty measure.
 
-### 4.7. Narrativas y disponibilidad
+### 4.7. Narratives and availability
 
-El prototipo utiliza Gemini directamente. SADUCI ya ofrece varios proveedores y una plantilla determinista. En código, el proveedor predeterminado es `stub`; el Compose local examinado configura `embedded` por defecto. Esa diferencia debe quedar explícita por entorno.
+The prototype calls Gemini directly. SADUCI already offers several providers and a deterministic template. The code defaults to `stub`, while the examined local Compose defaults to `embedded`. This difference must be explicit for each environment.
 
-La rama embebida degrada a plantilla cuando el modelo local no está disponible. Las llamadas a otros proveedores pueden propagar errores. El objetivo propuesto es conservar probabilidad y explicación estructurada aunque falle la narrativa opcional.
+The embedded branch falls back to a template when its model is unavailable. Other provider calls can propagate errors. The proposed behavior preserves probability and structured explanation when the optional narrative fails.
 
-Los límites de espera deben revisarse de extremo a extremo. Se localizaron llamadas de explicación con timeout de 30 segundos en el cliente existente y proveedores configurados a 60 segundos. Todavía debe verificarse qué cliente utiliza cada pantalla activa antes de ajustar esos valores.
+Timeouts require end-to-end review. Existing client explanation calls with a 30-second timeout and providers configured for 60 seconds were located. The client actually used by each active screen must be verified before adjusting these values.
 
-Fuentes: `../saduci/apps/core/src/prediction/app/services/config.py:85`, `narrative.py`, `../saduci/apps/platform/src/lib/prediction.ts:209` y `../saduci/apps/core/compose.yaml:159`.
+Sources: `../saduci/apps/core/src/prediction/app/services/config.py:85`, `narrative.py`, `../saduci/apps/platform/src/lib/prediction.ts:209`, and `../saduci/apps/core/compose.yaml:159`.
 
-## 5. Arquitectura recomendada
+## 5. Recommended architecture
 
-### 5.1. Alternativas consideradas
+### 5.1. Alternatives considered
 
-| Alternativa | Ventaja | Coste o limitación | Decisión |
+| Alternative | Benefit | Cost or limitation | Decision |
 | --- | --- | --- | --- |
-| Enlazar o incrustar Streamlit en SADUCI | Conserva rápidamente el prototipo visual. | Duplica captura, sesiones, despliegue y configuración narrativa. | Mantener solo como herramienta de investigación. |
-| Actualizar el servicio `prediction` existente | Reutiliza contratos, autoría, historial y frontera de red. | Requiere corregir semántica y asegurar paridad. | Opción recomendada. |
-| Crear un servicio independiente de inferencia | Aísla runtime y escalado del modelo. | Añade red, operación y contratos para un modelo ya servido. | Posponer hasta demostrar una necesidad concreta. |
+| Link or embed Streamlit in SADUCI | Quickly preserves the visual prototype. | Duplicates input capture, sessions, deployment, and narrative configuration. | Retain only as a research tool. |
+| Update the existing `prediction` service | Reuses contracts, authorship, history, and network boundary. | Requires semantic corrections and parity checks. | Recommended. |
+| Create an independent inference service | Isolates runtime and model scaling. | Adds networking, operations, and contracts for an already served model. | Defer until a concrete need is demonstrated. |
 
-### 5.2. Responsabilidades
+### 5.2. Ownership
 
-| Componente | Responsabilidad propuesta |
+| Component | Proposed responsibility |
 | --- | --- |
-| Este repositorio | Preparación reproducible, experimentos, entrenamiento, evaluación y exportación. |
-| `prediction` | Validación de entrada, inferencia, explicaciones, narrativa opcional y almacenamiento del resultado. |
-| `shared_core` | Contratos públicos compartidos y tipos de transporte. |
-| `patient` | Identidad y datos clínicos que le correspondan; sin cargar modelos. |
-| Gateway | Autenticación, autorización, enrutado y contexto de usuario. |
-| Plataforma | Captura, presentación, estados de error y consulta de historial. |
-| `simulation` | Mantener su responsabilidad actual; cualquier consumo futuro del predictor requerirá un contrato propio. |
+| This repository | Reproducible preparation, experiments, training, evaluation, and export. |
+| `prediction` | Input validation, inference, explanations, optional narrative, and result storage. |
+| `shared_core` | Shared public contracts and transport types. |
+| `patient` | Patient identity and its clinical data responsibilities; no model loading. |
+| Gateway | Authentication, authorization, routing, and user context. |
+| Platform | Input capture, presentation, error states, and record history. |
+| `simulation` | Retain current responsibilities; future predictor use requires its own contract. |
 
-No se propone compartir tablas entre bases ni cargar modelos en `shared_core`. Las reglas de inferencia tendrán un solo propietario, el servicio de predicción.
+Sharing tables across service databases or loading models in `shared_core` is not proposed. Inference rules should have one owner: the prediction service.
 
-### 5.3. Flujo de actualización del modelo
+### 5.3. Model update flow
 
 ```mermaid
 flowchart TD
-    E[Experimento reproducible] --> V[Evaluación y revisión]
-    V --> P[Paquete de modelo con manifiesto]
-    P --> C[Comprobación de integridad y paridad]
-    C --> Q[Validación en SADUCI]
-    Q --> R[Activación controlada]
-    R --> O[Observación y comparación]
-    O --> A[Conservar o revertir versión]
+    E[Reproducible experiment] --> V[Evaluation and review]
+    V --> P[Model package with manifest]
+    P --> C[Integrity and parity checks]
+    C --> Q[Validation in SADUCI]
+    Q --> R[Controlled activation]
+    R --> O[Observation and comparison]
+    O --> A[Keep or roll back version]
 ```
 
-El paquete se incorpora mediante un cambio revisable. No se ejecutarán entrenamientos desde una petición clínica ni se descargarán modelos predictivos arbitrarios aportados por el usuario.
+The package is incorporated through a reviewable change. Training must not run within a clinical request, and arbitrary user-supplied predictive models must not be downloaded.
 
-## 6. Contratos propuestos
+## 6. Proposed contracts
 
-Los nombres de este apartado son propuestas y no endpoints o campos ya implementados.
+Names in this section are proposals, not implemented endpoints or fields.
 
-### 6.1. Paquete de modelo
+### 6.1. Model package
 
-Cada versión debería incluir:
+Each version should include:
 
 ```text
 models/<version>/
@@ -222,190 +222,190 @@ models/<version>/
   reference_profile.json
 ```
 
-El manifiesto declarará `model_id`, `model_version`, `artifact_sha256`, commit de entrenamiento, versiones del runtime, orden y tipos de variables, unidad de ventilación, versión del catálogo, clase positiva, umbral y métodos de explicación disponibles. `evaluation.json` deberá separar métricas reproducidas de salidas históricas pendientes de reproducción.
+The manifest should declare `model_id`, `model_version`, `artifact_sha256`, training commit, runtime versions, feature order and types, ventilation unit, catalog version, positive class, threshold, and available explanation methods. `evaluation.json` must separate reproduced metrics from historical outputs awaiting reproduction.
 
-El identificador del conjunto de entrenamiento debe permitir su trazabilidad sin incluir datos personales ni publicar el conjunto clínico. El checksum verifica integridad; la confianza en el artefacto requiere también conocer y revisar su procedencia.
+A training-dataset identifier should enable traceability without including personal data or publishing the clinical dataset. A checksum verifies integrity; trusting an artifact also requires knowing and reviewing its provenance.
 
-### 6.2. Uso desde el consumidor
+### 6.2. Consumer usage
 
-La plataforma continuaría usando el recorrido actual de predicción. La propuesta es enriquecer la respuesta y enlazar la explicación a un resultado concreto:
+The platform would continue using the current prediction route. The proposal enriches responses and links explanations to a specific result:
 
 ```text
-resultado = predecir(entradas, paciente_opcional)
-explicacion = explicar(resultado.prediction_id, metodo_disponible)
+result = predict(inputs, optional_patient)
+explanation = explain(result.prediction_id, available_method)
 ```
 
-Así, la explicación utiliza las entradas y la versión del modelo del resultado original. Si el usuario cambia el formulario, ese cambio requiere otra predicción. Para resultados no persistidos se deberá definir un identificador temporal controlado o solicitar un nuevo cálculo explícito; no se aparentará que existe un registro guardado.
+The explanation then uses the original result's inputs and model version. Changing the form requires another prediction. For unpersisted results, define a controlled temporary identifier or request an explicit new calculation; do not imply that a saved record exists.
 
-### 6.3. Respuesta de predicción
+### 6.3. Prediction response
 
-Además de los campos actuales, se proponen `prediction_id`, `model_version`, `artifact_sha256`, `input_schema_version`, `catalog_version`, `reference_profile_version` cuando corresponda, `computed_at` y advertencias de dominio.
+Proposed additions are `prediction_id`, `model_version`, `artifact_sha256`, `input_schema_version`, `catalog_version`, `reference_profile_version` where applicable, `computed_at`, and domain warnings.
 
-La probabilidad debe ser finita y pertenecer a `[0,1]`. La clase positiva se identifica mediante las clases del estimador y el manifiesto, no solo por la posición fija `[1]`. El sistema debe tratar una salida no finita como fallo de inferencia, evitando convertirla en una probabilidad aparentemente válida por recorte.
+Probability must be finite and within `[0,1]`. Identify the positive class using estimator classes and the manifest, rather than only fixed position `[1]`. Non-finite output must be treated as inference failure instead of being clipped into an apparently valid probability.
 
-### 6.4. Respuesta de explicación
+### 6.4. Explanation response
 
-Se proponen `requested_method`, `effective_method`, `explainer_version`, `prediction_id`, `model_version`, referencias utilizadas, contribuciones estructuradas y estado de narrativa.
+Proposed fields are `requested_method`, `effective_method`, `explainer_version`, `prediction_id`, `model_version`, references used, structured contributions, and narrative status.
 
-No se asumirá que las diferencias por sustitución suman la probabilidad del resultado. Son contrastes individuales frente a referencias. Si se añade otro algoritmo, el contrato indicará sus unidades y propiedades en lugar de reutilizar una descripción matemática incompatible.
+Do not assume substitution differences sum to the prediction probability. They are individual contrasts against references. Any additional algorithm must declare its units and properties rather than reuse an incompatible mathematical description.
 
-Un método no disponible debe producir un error de contrato explícito con la lista de métodos admitidos. No se devolverá un método diferente con el nombre solicitado.
+An unavailable method should return an explicit contract error listing supported methods. A different method must not be returned under the requested name.
 
-### 6.5. Evolución compatible
+### 6.5. Compatible evolution
 
-Primero se actualizarán consumidores para entender metadatos y capacidades; después se restringirán las selecciones de métodos. Los alias existentes de rutas en inglés y español se conservarán durante esa transición. La retirada posterior requerirá comprobar sus consumidores, sin mantener indefinidamente dos implementaciones de lógica.
+Update consumers to understand metadata and capabilities first, then restrict method selection. Existing English and Spanish route aliases should remain during that transition. Later removal requires checking consumers without indefinitely retaining duplicate logic implementations.
 
-## 7. Persistencia y migraciones
+## 7. Persistence and migrations
 
-Se propone una migración Alembic para asociar procedencia a nuevas predicciones. Los campos exactos deberán ajustarse al contrato final; como mínimo debe poder recuperarse qué versión y qué checksum produjeron cada resultado.
+An Alembic migration is proposed to associate provenance with new predictions. Exact fields depend on the final contract; at minimum, each result must identify its producing version and checksum.
 
-Los registros antiguos se marcarán como procedencia histórica desconocida salvo que exista evidencia para vincularlos a un artefacto. No se les atribuirá automáticamente la versión actual. Tampoco se recalcularán ni sobrescribirán sus probabilidades como parte de una migración de esquema.
+Historical records should be marked as having unknown provenance unless evidence links them to an artifact. They must not automatically receive the current version. Their probabilities must not be recalculated or overwritten as part of a schema migration.
 
-Si se almacena la explicación, deberá quedar vinculada a la predicción, a su método efectivo y a las referencias usadas. La narrativa incluirá proveedor, modelo y versión del prompt cuando se conserve. La política de conservación debe decidir qué texto generado necesita persistencia y qué puede reconstruirse.
+If explanations are stored, they must link to the prediction, effective method, and references. Retained narratives should identify provider, model, and prompt version. A retention policy must determine which generated text needs storage and which can be reconstructed.
 
-La migración debe probarse con una copia de esquema y datos sintéticos representativos, comprobar lectura de registros históricos y verificar la reversión de aplicación. Una reversión del código no debe depender de destruir columnas o resultados nuevos.
+Test the migration against a schema copy with representative synthetic data, verify historical reads, and check application rollback. Rolling back code must not require deleting new columns or results.
 
-## 8. Plan de ejecución por fases
+## 8. Phased execution plan
 
-Las fases tienen puertas de salida verificables. No se asignan fechas cerradas porque falta reproducir el entorno y comprobar disponibilidad de datos. El orden evita que una actualización científica se mezcle con una corrección de contratos.
+Each phase has a verifiable exit gate. Fixed dates are not assigned because environment reproduction and data availability remain unverified. The sequence separates scientific updates from contract corrections.
 
-| Fase | Trabajo | Entregable | Criterio de salida |
+| Phase | Work | Deliverable | Exit criterion |
 | --- | --- | --- | --- |
-| 0. Línea base | Capturar commits, diff local, checksums, dependencias y recorrido activo. | Inventario y casos sintéticos de referencia. | Se puede identificar exactamente el sistema comparado. |
-| 1. Semántica de entrada | Resolver unidades, momento de uso, rangos y códigos. | Especificación de las seis variables y mapeos. | Backend, interfaz y modelo interpretan cada valor igual. |
-| 2. Explicación veraz | Exponer impacto por referencia y referencias válidas. | Contrato y UI coherentes; métodos no implementados rechazados. | El nombre mostrado identifica el algoritmo ejecutado. |
-| 3. Paquete reproducible | Exportar manifiesto, evaluación y perfil de referencia. | Versión verificable del modelo actual. | Paridad de inferencia y carga en el runtime de SADUCI. |
-| 4. Trazabilidad | Metadatos, identificador y vínculo con explicación. | Migración y contratos actualizados. | Un resultado nuevo se puede reconstruir y uno antiguo no pierde información. |
-| 5. Narrativa y experiencia | Degradación controlada, plazos y estados parciales. | Flujo completo en la plataforma existente. | El fallo del generador no invalida la predicción. |
-| 6. Validación integrada | Contratos, roles, persistencia, paridad y fallos. | Evidencia reproducible de aceptación. | Todos los criterios técnicos acordados pasan localmente. |
-| 7. Actualización científica | Reentrenamiento y evaluación de nuevas variantes. | Candidato con métricas y dominio documentados. | La promoción se justifica con evaluación independiente. |
-| 8. Activación | Versión fijada, observación y reversión ensayada. | Despliegue controlado del candidato aceptado. | Se puede volver al artefacto previo sin perder el historial. |
+| 0. Baseline | Capture commits, local diff, checksums, dependencies, and active request path. | Inventory and synthetic reference cases. | The compared system can be identified exactly. |
+| 1. Input semantics | Resolve units, prediction time, ranges, and codes. | Six-feature specification and mappings. | Backend, interface, and model interpret each value consistently. |
+| 2. Accurate explanations | Expose reference impact with valid references. | Coherent contract and UI; unimplemented methods rejected. | Displayed method identifies the executed algorithm. |
+| 3. Reproducible package | Export manifest, evaluation, and reference profile. | Verifiable version of the current model. | Inference parity and loading in the SADUCI runtime pass. |
+| 4. Traceability | Metadata, result identifier, and explanation linkage. | Updated migration and contracts. | New results are reconstructible and historical information is preserved. |
+| 5. Narrative and experience | Controlled degradation, deadlines, and partial states. | Complete workflow in the existing platform. | Generator failure does not invalidate prediction. |
+| 6. Integrated validation | Contracts, roles, persistence, parity, and failure paths. | Reproducible acceptance evidence. | Agreed technical criteria pass locally. |
+| 7. Scientific update | Retraining and evaluation of new variants. | Candidate with documented metrics and domain. | Promotion is justified by independent evaluation. |
+| 8. Activation | Pinned version, observation, and rehearsed rollback. | Controlled deployment of the accepted candidate. | Previous artifacts can be restored without losing history. |
 
-Las fases 1 a 6 pueden realizarse conservando inicialmente el modelo binariamente idéntico. La fase 7 solo comienza cuando existan datos y condiciones de evaluación suficientes. La integración técnica no debe presentarse como mejora demostrada del rendimiento predictivo.
+Phases 1–6 can initially retain the byte-identical model. Phase 7 begins only when adequate data and evaluation conditions exist. Technical integration must not be presented as a demonstrated improvement in predictive performance.
 
-## 9. Trabajo concreto por ubicación
+## 9. Concrete work by location
 
-| Ubicación | Cambio previsto |
+| Location | Planned change |
 | --- | --- |
-| Este repositorio, junto a los experimentos | Añadir un comando de exportación y evaluación reproducible, con su ubicación definida antes de implementarlo. |
-| `saduci/apps/core/src/prediction/models/` | Mantener artefacto aprobado y manifiesto por versión. |
-| `prediction/app/services/ml_model.py` | Verificar manifiesto, integridad, clases y compatibilidad al cargar. |
-| `prediction/app/services/inference.py` | Validación de salida, perfil de referencia y métodos efectivos. |
-| `prediction/app/services/prediction_service.py` | Devolver procedencia y vincular explicación con resultado. |
-| `shared_core/schemas/prediction.py` | Nuevos contratos y capacidades sin duplicar reglas en transportes. |
-| `prediction/app/models/entities.py` y `prediction/migrations/` | Trazabilidad y preservación de históricos mediante Alembic. |
-| `prediction/app/services/narrative.py` | Estado opcional, política de error y prompt coherente entre proveedores. |
-| Plataforma, módulo de predicción y BFF existentes | Actualizar tipos, formulario, selección de métodos e historial. Confirmar previamente qué clientes usan las pantallas. |
-| `saduci/docs/sistema/` | Documentar contrato final, unidades, activación y reversión en la ubicación canónica. |
+| This repository, alongside experiments | Add reproducible export and evaluation commands, choosing their location before implementation. |
+| `saduci/apps/core/src/prediction/models/` | Keep approved artifacts and a manifest per version. |
+| `prediction/app/services/ml_model.py` | Validate manifest, integrity, classes, and compatibility during loading. |
+| `prediction/app/services/inference.py` | Validate outputs, reference profile, and effective methods. |
+| `prediction/app/services/prediction_service.py` | Return provenance and link explanations to results. |
+| `shared_core/schemas/prediction.py` | Define updated contracts and capabilities without duplicating policy across transports. |
+| `prediction/app/models/entities.py` and `prediction/migrations/` | Add traceability and preserve historical data through Alembic. |
+| `prediction/app/services/narrative.py` | Optional status, error policy, and consistent prompts across providers. |
+| Existing platform prediction module and BFF | Update types, forms, method selection, and history after confirming active clients. |
+| `saduci/docs/sistema/` | Document final contracts, units, activation, and rollback in the canonical location. |
 
-Esta tabla asigna responsabilidades técnicas, no agentes concurrentes. La ejecución deberá respetar las reservas y coordinación locales si posteriormente se trabaja en paralelo. El Compose modificado por otra sesión no debe sobrescribirse.
+This table assigns technical responsibilities, not concurrent agents. Implementation must follow local reservations and coordination if parallel work is later used. Compose changes belonging to another session must not be overwritten.
 
-## 10. Estrategia de pruebas y aceptación
+## 10. Testing and acceptance strategy
 
-### 10.1. Paridad del modelo actual
+### 10.1. Current-model parity
 
-Construir casos sintéticos sin datos de pacientes que cubran todas las categorías admitidas y límites acordados. Comparar el pipeline de referencia con el servicio utilizando las mismas entradas. La tolerancia numérica debe fijarse tras comprobar determinismo y runtime, y quedar registrada antes de evaluar una versión candidata.
+Create synthetic cases without patient data covering all allowed categories and agreed limits. Compare the reference pipeline and service using identical inputs. Set and record numerical tolerance after checking determinism and runtime, before evaluating a candidate.
 
-Verificar orden de columnas, transformación categórica, unidad de ventilación, clase positiva, probabilidades finitas y aplicación consistente del umbral. Incluir el punto exacto del umbral para detectar diferencias por redondeo.
+Verify column order, categorical transformation, ventilation unit, positive class, finite probabilities, and consistent threshold application. Include the exact threshold to detect rounding differences.
 
-### 10.2. Contratos y explicabilidad
+### 10.2. Contracts and explanations
 
-Comprobar errores de campos ausentes, códigos desconocidos y valores fuera del dominio. Para un modelo controlado con dependencia conocida de una variable, verificar que el impacto calculado corresponde a la sustitución documentada y a la dirección mostrada.
+Check missing fields, unknown codes, and out-of-domain values. Using a controlled model with a known feature dependency, verify that calculated impact matches the documented substitution and displayed direction.
 
-Cada método declarado disponible debe ejecutar su algoritmo y devolver su nombre efectivo. Explicar una predicción guardada después de activar otra versión debe utilizar la versión original o informar explícitamente que no está disponible.
+Every method declared available must execute its algorithm and return its effective name. Explaining a stored prediction after activating another version must use the original version or explicitly report its unavailability.
 
-### 10.3. Persistencia, identidad y errores
+### 10.3. Persistence, identity, and failures
 
-Verificar predicción guardada, fallo de base con `persisted=False`, datos históricos sin versión conocida y reintentos. Si se incorpora idempotencia, su clave deberá estar asociada al usuario y a la solicitud para evitar duplicar registros por reenvío accidental.
+Verify saved predictions, database failure with `persisted=False`, historical data with unknown versions, and retries. If idempotency is added, bind its key to the user and request to prevent accidental duplicate records.
 
-La verificación de permisos debe recorrer el BFF y el gateway, no limitarse al router interno. Los roles y la vinculación con pacientes conservarán las políticas vigentes de SADUCI.
+Permission checks must traverse the BFF and gateway rather than only the internal router. Roles and patient associations must retain SADUCI's existing policies.
 
-### 10.4. Narrativa e interfaz
+### 10.4. Narrative and interface
 
-Probar generador desactivado, modelo local ausente, timeout remoto y respuesta inválida. En todos esos casos debe quedar disponible el resultado numérico que ya se calculó, con estado claro de la explicación y del guardado.
+Test disabled generation, an absent local model, remote timeout, and invalid responses. Already calculated numerical results must remain available, with clear explanation and persistence states.
 
-En la interfaz, cambiar una entrada invalida la explicación anterior o exige ejecutar otra predicción. Los controles deben permitir teclado, mostrar foco y conservar los patrones visuales de SADUCI. La revisión de textos y traducciones se hará con la estructura real del proyecto.
+Changing an input must invalidate the previous explanation or require another prediction. Controls must support keyboard access, visible focus, and SADUCI's visual patterns. Text and translation review must follow the project's actual structure.
 
-### 10.5. Comandos previstos
+### 10.5. Planned commands
 
-Estos comandos proceden de las instrucciones de SADUCI y se ejecutarán durante implementación, no se han ejecutado para este informe:
+These commands come from SADUCI instructions and are intended for implementation. They were not run for this report:
 
 ```bash
-# Desde la raíz de SADUCI
+# From the SADUCI repository root
 python scripts/saduci.py test
 
-# Desde apps/core
+# From apps/core
 uv run ruff check .
 
-# Desde apps/platform
+# From apps/platform
 bun run test
 bunx tsc --noEmit
 bun run lint
 ```
 
-La prueba real del recorrido navegador → BFF → gateway → servicio debe añadirse a la aceptación integrada. El build de plataforma queda sujeto a las reglas del repositorio, que no lo incluyen por defecto.
+Integrated acceptance must include a real browser → BFF → gateway → service test. Platform builds remain subject to repository rules, which do not require them by default.
 
-## 11. Actualización científica del modelo
+## 11. Scientific model update
 
-La primera entrega debe ordenar el modelo existente. Una segunda entrega podrá estudiar un reemplazo, conservando separados ambos objetivos.
+The first delivery should organize and verify the existing model. A second can evaluate a replacement while keeping those objectives separate.
 
-Para evaluar un candidato se necesita reconstruir la procedencia y la etiqueta, dividir datos antes del remuestreo y reservar una evaluación independiente. Los diagnósticos deben tratarse como categorías y las observaciones sintéticas deben respetar su significado. El conjunto de referencia de explicaciones deberá salir de datos autorizados y representativos.
+Candidate evaluation requires reconstructing provenance and labels, splitting data before resampling, and reserving an independent evaluation. Diagnoses must be treated as categories, and synthetic observations must preserve their meaning. Explanation reference data must be authorized and representative.
 
-Las métricas deben incluir discriminación calculada con probabilidades, sensibilidad, precisión, especificidad, F1, calibración e incertidumbre de las estimaciones cuando el tamaño de muestra lo permita. Las cifras antiguas calculadas sobre etiquetas se conservarán como evidencia histórica identificada, sin compararlas como si fueran la misma medición.
+Metrics should include probability-based discrimination, sensitivity, precision, specificity, F1, calibration, and uncertainty where sample size permits. Historical label-based figures should remain identified as historical evidence and not be compared as though they measured the same quantity.
 
-El pequeño número de fallecimientos de las pruebas de campo guardadas impide basar una promoción solo en recall de 1,00. La evaluación debe informar números absolutos de casos y falsas alertas. Los criterios de promoción y el uso clínico previsto necesitan acordarse antes de examinar el resultado final del candidato.
+The small number of deaths in saved field tests prevents promotion based solely on recall of 1.00. Evaluation must report absolute case counts and false alerts. Promotion criteria and intended clinical use must be agreed before examining the candidate's final results.
 
-No se propone implantar recomendaciones terapéuticas generadas por lenguaje ni presentar la narrativa como explicación causal del desenlace. SADUCI mostrará una ayuda para la valoración, con la procedencia y los límites del resultado.
+Language-generated treatment recommendations are not proposed, and narratives must not be presented as causal explanations of patient outcomes. SADUCI should present a clinical assessment aid with result provenance and limitations.
 
-## 12. Operación, promoción y reversión
+## 12. Operations, promotion, and rollback
 
-La versión activa debe seleccionarse explícitamente por configuración y verificarse al arrancar. La disponibilidad para predecir debe depender de que el pipeline esté cargado y sea compatible. La disponibilidad del generador narrativo se informará por separado.
+Select the active version explicitly through configuration and verify it at startup. Prediction readiness should depend on a loaded, compatible pipeline. Narrative-generator availability should be reported separately.
 
-Registrar versión, checksum, duración de inferencia, error operativo y estado de persistencia, evitando incluir entradas clínicas o prompts completos en logs generales. Cualquier proveedor remoto se habilitará conforme a la configuración y autorización del entorno; la planificación no activa ninguno.
+Record version, checksum, inference duration, operational errors, and persistence status without placing clinical inputs or full prompts in general logs. Remote providers must be enabled according to environment configuration and authorization; this plan activates none.
 
-Antes de promocionar una versión se conservarán el artefacto anterior, su manifiesto y los datos sintéticos de paridad. La reversión seleccionará esa versión sin sobrescribir las predicciones ya realizadas con la nueva. Si una explicación histórica exige un modelo retirado, se informará esa condición en lugar de regenerarla silenciosamente con otro.
+Before promotion, preserve the previous artifact, manifest, and synthetic parity cases. Rollback selects that version without overwriting predictions already made by the new one. If a historical explanation requires a retired model, report that condition rather than silently regenerating it using another model.
 
-La incorporación de colas o un servicio separado para lenguaje solo se justificará si las mediciones de concurrencia y latencia muestran que la ejecución actual no satisface el uso previsto. Primero se comprobarán los tiempos reales y sus límites.
+Queues or a separate language service should be introduced only if concurrency and latency measurements show that current execution cannot meet the intended use. First measure actual timings and their limits.
 
-## 13. Riesgos y decisiones pendientes
+## 13. Risks and pending decisions
 
-| Riesgo o decisión | Prioridad | Resolución propuesta |
+| Risk or decision | Priority | Proposed resolution |
 | --- | --- | --- |
-| Método solicitado distinto del ejecutado | P0 | Declarar y ejecutar el método efectivo antes de ampliar explicadores. |
-| Código de catálogo distinto del código entrenado | P0 | Mapeo exhaustivo y prueba de correspondencia. |
-| Ventilación con unidades ambiguas | P0 | Unidad canónica y conversión única comprobada. |
-| Diagnóstico de egreso ausente en predicción temprana | P0 | Definir momento de uso o entrenar otra variante. |
-| Rangos sin justificación del dominio | P0 | Documentar población, formato y límites evaluados por separado. |
-| Modelo y explicación sin vínculo de versión | P1 | Manifiesto y trazabilidad de resultado. |
-| Fallo narrativo que oculta resultado válido | P1 | Estado parcial y degradación explícita. |
-| Actualización que rompe históricos | P1 | Migración compatible y procedencia desconocida para registros sin evidencia. |
-| Mejora aparente por fuga de datos o evaluación pequeña | P1 | Evaluación reproducible antes de promover un candidato. |
-| Complejidad operativa innecesaria | P2 | Reutilizar el servicio y medir antes de separarlo. |
+| Requested method differs from executed method | P0 | Declare and execute the effective method before adding explainers. |
+| Catalog identifier differs from training code | P0 | Exhaustive mapping and correspondence tests. |
+| Ambiguous ventilation units | P0 | Canonical unit and verified single conversion. |
+| Discharge diagnosis unavailable for early prediction | P0 | Define prediction time or train a separate variant. |
+| Ranges lack domain justification | P0 | Document population, format, and evaluated limits separately. |
+| Model and explanation lack version linkage | P1 | Manifest and result traceability. |
+| Narrative failure hides a valid result | P1 | Partial state and explicit degradation. |
+| Updates break historical records | P1 | Compatible migration and unknown provenance where evidence is absent. |
+| Apparent improvement from leakage or small evaluations | P1 | Reproducible evaluation before candidate promotion. |
+| Unnecessary operational complexity | P2 | Reuse the service and measure before separating it. |
 
-La prioridad P0 bloquea una integración semánticamente confiable; P1 completa trazabilidad y robustez; P2 corresponde a decisiones posteriores de evolución. Estas prioridades son propuestas de este informe.
+P0 blocks semantically reliable integration; P1 completes traceability and robustness; P2 concerns later evolution. These priorities are proposals in this report.
 
-Antes de implementar deben quedar resueltas tres decisiones de producto y datos: cuándo se realizará la predicción, qué población cubre la versión y qué política se aplica a narrativas externas. Pueden documentarse junto con las fases 0 y 1 sin detener el inventario técnico ni las pruebas de paridad.
+Three product and data decisions must be resolved before implementation: prediction time, the version's target population, and the policy for external narratives. These can be documented during phases 0 and 1 without stopping the technical inventory or parity tests.
 
-## 14. Entrega inicial recomendada
+## 14. Recommended first delivery
 
-La primera entrega debe conservar el checksum actual, describir correctamente el impacto por referencia, fijar unidades y correspondencias diagnósticas, y devolver la procedencia del modelo. Después se completa la vinculación con el historial y la tolerancia a fallos de narrativa.
+The first delivery should retain the current checksum, describe reference impact accurately, establish units and diagnosis mappings, and return model provenance. Next, complete record linkage and narrative fault tolerance.
 
-Esa secuencia permite mejorar la integración sin atribuir al modelo un rendimiento nuevo que no se ha medido. El reentrenamiento queda como una entrega posterior, con evaluación propia y una decisión explícita de promoción.
+This sequence improves integration without attributing unmeasured performance gains to the model. Retraining remains a separate delivery with its own evaluation and explicit promotion decision.
 
-## 15. Fuentes internas principales
+## 15. Main internal sources
 
-- [Resumen del proyecto de origen](Summary2026.md).
-- [Arquitectura de SADUCI](https://github.com/coslatte/saduci/blob/0553b3b0e82dcb3584b6662e1417a070530879df/docs/sistema/ARCHITECTURE.md).
-- [Instrucciones de SADUCI](https://github.com/coslatte/saduci/blob/0553b3b0e82dcb3584b6662e1417a070530879df/AGENTS.md).
-- [Contrato de predicción](https://github.com/coslatte/saduci/blob/0553b3b0e82dcb3584b6662e1417a070530879df/apps/core/src/shared_core/schemas/prediction.py).
-- [Inferencia e impacto por referencia](https://github.com/coslatte/saduci/blob/0553b3b0e82dcb3584b6662e1417a070530879df/apps/core/src/prediction/app/services/inference.py).
-- [Predicción, explicación y persistencia](https://github.com/coslatte/saduci/blob/0553b3b0e82dcb3584b6662e1417a070530879df/apps/core/src/prediction/app/services/prediction_service.py).
-- [Carga del pipeline](https://github.com/coslatte/saduci/blob/0553b3b0e82dcb3584b6662e1417a070530879df/apps/core/src/prediction/app/services/ml_model.py).
-- [Configuración y códigos](https://github.com/coslatte/saduci/blob/0553b3b0e82dcb3584b6662e1417a070530879df/apps/core/src/prediction/app/services/config.py).
-- [Generación narrativa](https://github.com/coslatte/saduci/blob/0553b3b0e82dcb3584b6662e1417a070530879df/apps/core/src/prediction/app/services/narrative.py).
-- [Modelo narrativo local](https://github.com/coslatte/saduci/blob/0553b3b0e82dcb3584b6662e1417a070530879df/apps/core/src/prediction/app/services/narrative_model.py).
-- [Activo narrativo y checksum](https://github.com/coslatte/saduci/blob/0553b3b0e82dcb3584b6662e1417a070530879df/apps/core/src/prediction/app/services/model_assets.py).
-- [Entidades persistidas](https://github.com/coslatte/saduci/blob/0553b3b0e82dcb3584b6662e1417a070530879df/apps/core/src/prediction/app/models/entities.py).
-- [Pruebas del servicio](https://github.com/coslatte/saduci/blob/0553b3b0e82dcb3584b6662e1417a070530879df/apps/core/tests/prediction/test_prediction_api.py).
+- [Original project summary](Summary2026.md).
+- [SADUCI architecture](https://github.com/coslatte/saduci/blob/0553b3b0e82dcb3584b6662e1417a070530879df/docs/sistema/ARCHITECTURE.md).
+- [SADUCI instructions](https://github.com/coslatte/saduci/blob/0553b3b0e82dcb3584b6662e1417a070530879df/AGENTS.md).
+- [Prediction contract](https://github.com/coslatte/saduci/blob/0553b3b0e82dcb3584b6662e1417a070530879df/apps/core/src/shared_core/schemas/prediction.py).
+- [Inference and reference impact](https://github.com/coslatte/saduci/blob/0553b3b0e82dcb3584b6662e1417a070530879df/apps/core/src/prediction/app/services/inference.py).
+- [Prediction, explanation, and persistence](https://github.com/coslatte/saduci/blob/0553b3b0e82dcb3584b6662e1417a070530879df/apps/core/src/prediction/app/services/prediction_service.py).
+- [Pipeline loading](https://github.com/coslatte/saduci/blob/0553b3b0e82dcb3584b6662e1417a070530879df/apps/core/src/prediction/app/services/ml_model.py).
+- [Configuration and codes](https://github.com/coslatte/saduci/blob/0553b3b0e82dcb3584b6662e1417a070530879df/apps/core/src/prediction/app/services/config.py).
+- [Narrative generation](https://github.com/coslatte/saduci/blob/0553b3b0e82dcb3584b6662e1417a070530879df/apps/core/src/prediction/app/services/narrative.py).
+- [Local narrative model](https://github.com/coslatte/saduci/blob/0553b3b0e82dcb3584b6662e1417a070530879df/apps/core/src/prediction/app/services/narrative_model.py).
+- [Narrative asset and checksum](https://github.com/coslatte/saduci/blob/0553b3b0e82dcb3584b6662e1417a070530879df/apps/core/src/prediction/app/services/model_assets.py).
+- [Persisted entities](https://github.com/coslatte/saduci/blob/0553b3b0e82dcb3584b6662e1417a070530879df/apps/core/src/prediction/app/models/entities.py).
+- [Service tests](https://github.com/coslatte/saduci/blob/0553b3b0e82dcb3584b6662e1417a070530879df/apps/core/tests/prediction/test_prediction_api.py).
 
-Los enlaces a SADUCI apuntan al commit de referencia en GitHub. El repositorio SADUCI es público en https://github.com/coslatte/saduci; las fuentes enlazadas pueden consultarse sin permisos privados. El informe distingue las observaciones de esa revisión local de las propuestas de implementación. Las rutas con `../saduci` describen la disposición local utilizada durante la revisión. Este informe se contribuye al repositorio de investigación mediante un fork; la documentación operativa definitiva se incorporará a la ubicación canónica de SADUCI cuando se implemente el cambio.
+SADUCI links point to the reference commit on GitHub. The repository is public at [coslatte/saduci](https://github.com/coslatte/saduci), so linked sources can be consulted without private access. The report distinguishes local review observations from implementation proposals. Paths beginning with `../saduci` describe the local layout used during review. This report is contributed to the research repository through a fork; final operational documentation belongs in SADUCI's canonical location when changes are implemented.

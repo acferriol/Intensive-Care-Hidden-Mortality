@@ -1,269 +1,269 @@
-# Resumen del trabajo realizado en Intensive-Care-Hidden-Mortality
+# Summary of work completed in Intensive-Care-Hidden-Mortality
 
-Fecha de elaboración: 9 de noviembre de 2026.
+Prepared on November 9, 2026.
 
-Este documento reúne el trabajo que consta en los archivos y en el historial de Git del repositorio. El desarrollo registrado comienza el 11 de enero de 2024 y el último commit disponible es `2cf8140`, del 18 de diciembre de 2025. El nombre del documento corresponde al año de elaboración del resumen; no implica que se hayan registrado nuevas implementaciones durante 2026.
+This document brings together the work recorded in the repository files and Git history. Recorded development began on January 11, 2024, and the latest available commit is `2cf8140`, dated December 18, 2025. The document's filename refers to the year this summary was prepared; it does not imply that new implementations were recorded during 2026.
 
-La revisión se basa en el código, las celdas y salidas guardadas de los cuadernos, los archivos de resultados y configuración, los artefactos versionados y los mensajes de los commits. No se reentrenaron modelos ni se ejecutaron consultas a servicios de IA para redactarlo. Las métricas citadas son resultados históricos conservados, no mediciones nuevas.
+The review draws on source code, notebook cells and saved outputs, result and configuration files, versioned artifacts, and commit messages. No models were retrained and no AI service requests were made to prepare it. Reported metrics are preserved historical results, not new measurements.
 
-## Continuidad del trabajo e integración en SADUCI
+## Continuation of the work and integration into SADUCI
 
-La capacidad predictiva de este proyecto ya tiene una integración en el repositorio público [coslatte/saduci](https://github.com/coslatte/saduci). Allí se utiliza una copia binariamente idéntica de `new_workflow.joblib` dentro del servicio de predicción, con contratos HTTP, persistencia y generación narrativa. Esto identifica un destino concreto para la ejecución integrada del modelo, sin implicar que todos los cuadernos o explicadores se hayan trasladado.
+This project's predictive capability is already integrated into the public [coslatte/saduci](https://github.com/coslatte/saduci) repository. Its prediction service uses a byte-identical copy of `new_workflow.joblib`, with HTTP contracts, persistence, and narrative generation. This identifies a concrete destination for integrated model execution without implying that every notebook or explainer has been transferred.
 
-El [informe de integración y traslado](IntegracionSADUCI2026.md) describe qué elementos permanecen como investigación en este repositorio, cuáles se incorporaron o adaptaron en SADUCI y qué diferencias requieren actualización. También distingue ese movimiento funcional de la contribución de ambos informes al repositorio original mediante un fork. La documentación conserva el origen de los experimentos y enlaza su continuación en el sistema integrado.
+The [integration and transfer report](IntegracionSADUCI2026.md) describes which elements remain as research in this repository, which have been incorporated or adapted in SADUCI, and which differences need updating. It also distinguishes that functional transfer from the contribution of these reports to the original repository through a fork. The documentation preserves the experiments' origin and links to their continuation in the integrated system.
 
-## 1. Propósito y alcance del proyecto
+## 1. Project purpose and scope
 
-El proyecto estudia la predicción de mortalidad en pacientes de una unidad de cuidados intensivos mediante aprendizaje automático. Su evolución combina experimentación con datos clínicos, comparación de clasificadores, tratamiento del desequilibrio entre clases y explicación de predicciones individuales. Posteriormente se incorporó una interfaz web para introducir características de un paciente y consultar una probabilidad de no supervivencia al egreso de la UCI.
+The project studies mortality prediction for intensive care unit patients using machine learning. Its development combines clinical data experiments, classifier comparisons, class imbalance handling, and explanations of individual predictions. A web interface was subsequently added to enter patient characteristics and obtain an estimated probability of non-survival at ICU discharge.
 
-La expresión «mortalidad oculta» aparece en el contexto y en las instrucciones de los modelos de lenguaje. En el entrenamiento revisado, la variable objetivo es `Fallece`. No se encontró en esos flujos una segunda etiqueta que identifique de forma independiente la condición de mortalidad oculta. Por tanto, el resultado computacional documentado es una predicción de fallecimiento, interpretada dentro de ese contexto de investigación.
+The term “hidden mortality” appears in the context and language-model instructions. In the reviewed training workflows, the target variable is `Fallece`. Those workflows do not define a separate label independently identifying hidden mortality. The documented computational output is therefore a mortality prediction interpreted within that research context.
 
-El repositorio conserva distintas generaciones de experimentos. Algunos cuadernos representan comparaciones iniciales, otros exploran explicabilidad y otros construyen flujos de preprocesamiento y clasificación reutilizables. La aplicación integra parte de ese trabajo en un prototipo interactivo.
+The repository preserves several generations of experiments. Some notebooks contain early comparisons, others explore explainability, and later ones construct reusable preprocessing and classification workflows. The application brings part of this work into an interactive prototype.
 
-## 2. Evolución histórica
+## 2. Development history
 
-### Enero de 2024: preparación de datos y primeros modelos
+### January 2024: data preparation and initial models
 
-El primer commit, `bdba1c0`, incorporó cuadernos de clasificación y regresión. Durante los días siguientes se trabajó en la inspección de datos, la comprobación de valores nulos y la construcción del conjunto de variables que recibirían los algoritmos.
+The first commit, `bdba1c0`, introduced classification and regression notebooks. Work over the following days covered data inspection, missing-value checks, and construction of the feature set supplied to the algorithms.
 
-El historial de `My_regression.ipynb`, posteriormente reorganizado, registra la separación de `Fallece` respecto a los predictores, la selección de observaciones individuales y la exploración de la frecuencia de las clases. También se añadieron gráficas de barras para representar esa distribución.
+The history of `My_regression.ipynb`, later reorganized, records separating `Fallece` from the predictors, selecting individual observations, and exploring class frequencies. Bar charts were added to display that distribution.
 
-Entre el 15 y el 17 de enero se incorporaron SMOTE, la división entre entrenamiento y prueba, la regresión logística, las predicciones, sus métricas y la validación cruzada. Esa secuencia estableció el núcleo experimental del proyecto.
+Between January 15 and 17, SMOTE, training/test splitting, logistic regression, predictions, metrics, and cross-validation were introduced. This established the project's initial experimental workflow.
 
-### Marzo de 2024: particiones y comparación sistemática
+### March 2024: partitions and systematic comparison
 
-En marzo se reorganizaron los cuadernos y se introdujeron conjuntos de entrenamiento, validación y prueba. El commit `632585f`, del 19 de marzo, documenta una proporción de 80:10:10.
+The notebooks were reorganized and training, validation, and test sets were introduced. Commit `632585f`, dated March 19, documents an 80:10:10 split.
 
-Los commits del 29 y 30 de marzo registran varias versiones para un foro. Una de ellas, `cff8265`, describe la eliminación de variables dummy en esa versión y el uso de F1 como criterio de búsqueda de hiperparámetros. Estas decisiones corresponden a una etapa concreta, ya que los flujos posteriores vuelven a incorporar codificación categórica explícita.
+Commits on March 29 and 30 record several versions prepared for a forum. One, `cff8265`, describes removing dummy variables in that version and using F1 for hyperparameter search. These decisions belong to a particular stage: later workflows introduce explicit categorical encoding again.
 
-### Abril de 2025: explicabilidad, interfaz y nuevo flujo
+### April 2025: explainability, interface, and a new workflow
 
-La actividad de abril de 2025 amplió la comparación sin sobremuestreo y consolidó el trabajo visible en la aplicación. También se retiraron del seguimiento varios archivos de datos y exportaciones de Excel, según `9fa32a3`, del 4 de abril.
+April 2025 expanded comparisons without oversampling and consolidated work visible in the application. Several data files and Excel exports were removed from tracking in `9fa32a3`, dated April 4.
 
-El 9 de abril se añadió un contenedor de desarrollo. El 15 de abril se mejoró la selección de diagnósticos mediante descripciones y se modificó el flujo de explicación de la interfaz. Entre el 18 y el 21 de abril se introdujo un nuevo cuaderno de trabajo, se guardó `new_workflow.joblib` y se actualizó la aplicación para utilizarlo.
+A development container was added on April 9. On April 15, diagnosis selection was improved using descriptions, and the interface's explanation flow was changed. Between April 18 and 21, a new workflow notebook was introduced, `new_workflow.joblib` was saved, and the application was updated to use it.
 
-### Mayo de 2025: inferencia y aumento de datos
+### May 2025: inference and data augmentation
 
-El 15 de mayo se incorporó `inference.ipynb` y se amplió la comparación entre técnicas de aumento de datos en `test-workflow.ipynb`. El trabajo pasó a incluir inspección de probabilidades, revisión de errores y evaluación con distintas variantes de sobremuestreo.
+On May 15, `inference.ipynb` was added and comparisons of data augmentation techniques were expanded in `test-workflow.ipynb`. Work included probability inspection, error review, and evaluation with different oversampling variants.
 
-### Junio de 2025: regresión logística y explicaciones narrativas
+### June 2025: logistic regression and narrative explanations
 
-El 18 de junio se añadió un flujo específico de regresión logística y se separaron los cuadernos de MLP y regresión logística. Se guardó además `new_workflow_lr.joblib`.
+On June 18, a dedicated logistic regression workflow was added, and the MLP and logistic regression notebooks were separated. `new_workflow_lr.joblib` was also saved.
 
-El 21 de junio se cambió el idioma de la interfaz y se ajustó la presentación del DataFrame. Los días 28 y 29 se añadió un experimento con modelos de lenguaje en `llms/model-explain-text.ipynb`, se llevó la generación de narrativas a la aplicación y se corrigió la configuración de la clave de API. Varias revisiones del mismo período ajustaron dependencias y resolvieron incompatibilidades del entorno.
+On June 21, the interface language changed and DataFrame presentation was adjusted. On June 28 and 29, language-model experiments were added in `llms/model-explain-text.ipynb`, narrative generation was incorporated into the application, and API-key configuration was corrected. Several revisions during the same period adjusted dependencies and resolved environment incompatibilities.
 
-### Diciembre de 2025: integración de Gemini
+### December 2025: Gemini integration
 
-El commit `2cf8140`, del 18 de diciembre, actualizó `web_app.py` y `requirements.txt` para la integración con Gemini. La versión revisada solicita narrativas a `gemini-2.5-flash-lite` mediante `google.generativeai`. Esta es una descripción del código conservado, no una comprobación de disponibilidad actual del servicio.
+Commit `2cf8140`, dated December 18, updated `web_app.py` and `requirements.txt` for Gemini integration. The reviewed version requests narratives from `gemini-2.5-flash-lite` through `google.generativeai`. This describes the preserved code, not a current service availability check.
 
-## 3. Datos clínicos y preparación
+## 3. Clinical data and preparation
 
-Los cuadernos cargan principalmente `Datos_regresion.csv`. Las pruebas de campo utilizan `prueba_de_campo.xls` y, en flujos posteriores, `pc.csv`. La configuración de Git excluye archivos CSV, XLS y XLSX, por lo que esos conjuntos no forman parte del material de datos versionado revisado.
+The notebooks primarily load `Datos_regresion.csv`. Field tests use `prueba_de_campo.xls` and, in later workflows, `pc.csv`. Git configuration excludes CSV, XLS, and XLSX files, so these datasets are not part of the versioned data reviewed.
 
-Las variables de entrada del flujo usado por la aplicación son las siguientes:
+The workflow used by the application accepts these features:
 
-| Variable | Significado en el proyecto |
+| Variable | Meaning in the project |
 | --- | --- |
-| `Edad` | Edad del paciente. |
-| `Diag.Ing1` | Primer diagnóstico de ingreso. |
-| `Diag.Ing2` | Segundo diagnóstico de ingreso. |
-| `Diag.Egr2` | Segundo diagnóstico de egreso. |
-| `APACHE` | Valor presentado en la interfaz como APACHE II. |
-| `TiempoVAM` | Tiempo de ventilación artificial mecánica. |
+| `Edad` | Patient age. |
+| `Diag.Ing1` | First admission diagnosis. |
+| `Diag.Ing2` | Second admission diagnosis. |
+| `Diag.Egr2` | Second discharge diagnosis. |
+| `APACHE` | Score presented as APACHE II in the interface. |
+| `TiempoVAM` | Duration of mechanical ventilation. |
 
-En los análisis iniciales también se utiliza `Diag.Egr1`. Se compararon variantes con todos los rasgos, sin el primer diagnóstico de egreso y sin ambos diagnósticos de egreso. La aplicación actual conserva `Diag.Egr2` y excluye `Diag.Egr1`.
+Early analyses also use `Diag.Egr1`. Variants were compared with all features, without the first discharge diagnosis, and without both discharge diagnoses. The current application retains `Diag.Egr2` and excludes `Diag.Egr1`.
 
-El análisis exploratorio incluye estadísticas descriptivas, tipos de datos, frecuencias por diagnóstico y tablas que cruzan diagnósticos con `Fallece`. En `Classification.ipynb` se inspeccionan valores de `TiempoVAM` superiores a 120 y se elimina la fila con índice 207. Esa modificación ayuda a explicar que algunas salidas muestren 207 observaciones y otras 208.
+Exploratory analysis includes descriptive statistics, data types, diagnosis frequencies, and tables crossing diagnoses with `Fallece`. `Classification.ipynb` inspects `TiempoVAM` values greater than 120 and removes row 207. This helps explain why some outputs show 207 observations and others 208.
 
-Una salida de clasificación registra 176 observaciones de clase 0 y 31 de clase 1 antes del remuestreo. En `inference.ipynb` aparecen 176 de clase 0 y 32 de clase 1. Estas cifras pertenecen a estados distintos del conjunto y no deben combinarse como si procedieran de una única ejecución.
+One classification output records 176 class-0 and 31 class-1 observations before resampling. `inference.ipynb` shows 176 class-0 and 32 class-1 observations. These figures belong to different dataset states and should not be combined as though they came from one execution.
 
-Para la prueba de campo se eliminan columnas como posición, sexo, piel, fechas de ingreso y egreso, traslado, procedencia y modos de ventilación. En los flujos nuevos también se divide `TiempoVAM` entre 24 al preparar `pc.csv`. Esa conversión debe conservarse al interpretar las unidades del modelo.
+Field-test preparation removes columns including position, sex, skin, admission and discharge dates, transfer status, origin, and ventilation modes. The newer workflows also divide `TiempoVAM` by 24 when preparing `pc.csv`. This conversion must be accounted for when interpreting model units.
 
-## 4. Tratamiento del desequilibrio de clases
+## 4. Class imbalance handling
 
-El desequilibrio entre supervivencia y fallecimiento motivó una parte central de los experimentos. Se construyeron variantes sin sobremuestreo y variantes con Random Over Sampling y SMOTE. En las etapas posteriores se añadieron ADASYN y BorderlineSMOTE.
+The imbalance between survival and mortality motivated a substantial part of the experiments. Workflows were created without oversampling and with Random Over Sampling and SMOTE. Later stages added ADASYN and BorderlineSMOTE.
 
-Random Over Sampling replica observaciones de la clase minoritaria. SMOTE y sus variantes generan observaciones sintéticas. Los cuadernos comparan cómo esos cambios afectan a la detección de fallecimientos y a los errores sobre supervivientes.
+Random Over Sampling duplicates minority-class observations. SMOTE and related techniques generate synthetic observations. The notebooks compare their effects on mortality detection and errors involving survivors.
 
-La organización conserva estas líneas experimentales en archivos separados:
+These experimental lines are preserved separately:
 
-| Cuaderno | Trabajo principal |
+| Notebook | Main work |
 | --- | --- |
-| `Classification_RandomOverSampling.ipynb` | Experimentos con ROS y comparaciones adicionales de preprocesamiento y remuestreo. |
-| `Classification_SMOTE.ipynb` | Experimentos con generación sintética mediante SMOTE. |
-| `Classification_without_oversampling.ipynb` | Comparación sin sobremuestreo con búsqueda de hiperparámetros. |
-| `Classification_without_oversampling_without_gridsearch.ipynb` | Referencia sin sobremuestreo ni búsqueda exhaustiva. |
+| `Classification_RandomOverSampling.ipynb` | ROS experiments and additional preprocessing and resampling comparisons. |
+| `Classification_SMOTE.ipynb` | Synthetic data generation experiments using SMOTE. |
+| `Classification_without_oversampling.ipynb` | Comparison without oversampling, with hyperparameter search. |
+| `Classification_without_oversampling_without_gridsearch.ipynb` | Baseline without oversampling or exhaustive search. |
 
-En algunos flujos iniciales el sobremuestreo se aplica al conjunto completo antes de dividirlo. Eso puede introducir dependencia entre entrenamiento y evaluación, por ejemplo si copias de una observación terminan en particiones diferentes. Los flujos posteriores separan primero entrenamiento y prueba y generan los conjuntos aumentados a partir del entrenamiento.
+Some early workflows resample the full dataset before splitting it. This can create dependencies between training and evaluation, for example when copies of an observation reach different partitions. Later workflows split training and test data first and generate augmented datasets from training data.
 
-También se conservan experimentos que aplican métodos sintéticos sobre columnas de diagnósticos codificadas numéricamente antes de la codificación categórica. La validez clínica de valores interpolados en esas columnas necesita una revisión específica. El resumen registra el experimento sin asumir que todas sus observaciones sintéticas sean categorías diagnósticas válidas.
+Some experiments also apply synthetic methods to numerically encoded diagnosis columns before categorical encoding. The clinical validity of interpolated values in those columns requires specific review. Recording these experiments does not establish that all synthetic observations represent valid diagnostic categories.
 
-## 5. Modelos y búsqueda de hiperparámetros
+## 5. Models and hyperparameter search
 
-Las principales familias comparadas son K vecinos más próximos, regresión logística y perceptrón multicapa.
+The main classifier families are K nearest neighbors, logistic regression, and multilayer perceptrons.
 
-Para KNN se exploraron número de vecinos, ponderación uniforme o por distancia, algoritmo de búsqueda, tamaño de hoja y distancia de Minkowski. Para regresión logística se variaron `C`, penalización y solucionador. Para MLP se ensayaron tamaños de capas, activaciones, optimizadores, regularización y número máximo de iteraciones.
+KNN experiments vary neighbor count, uniform or distance weighting, search algorithm, leaf size, and Minkowski distance. Logistic regression experiments vary `C`, penalty, and solver. MLP experiments vary hidden-layer sizes, activations, optimizers, regularization, and maximum iterations.
 
-Los cuadernos iniciales incorporan `GridSearchCV` con cinco particiones y F1 como criterio de selección. `Classification.ipynb` incluye además validación cruzada estratificada de diez particiones y métricas tanto de entrenamiento como de prueba.
+Early notebooks use `GridSearchCV` with five folds and F1 as the selection criterion. `Classification.ipynb` also includes ten-fold stratified cross-validation and training and test metrics.
 
-Las métricas utilizadas incluyen sensibilidad o recall, F1, precisión, matrices de confusión, exactitud balanceada, kappa de Cohen y valores rotulados como AUC-ROC. La lectura conjunta de esas métricas permite observar problemas que la exactitud global puede ocultar en un conjunto desequilibrado.
+Metrics include recall, F1, precision, confusion matrices, balanced accuracy, Cohen's kappa, and values labeled AUC-ROC. Considering these together reveals problems that overall accuracy can conceal in an imbalanced dataset.
 
-Los archivos `configuracion_ROS.txt` y `configuracion_SMOTE.txt` guardan hiperparámetros para distintas selecciones de rasgos. Por ejemplo, el primer bloque de ROS registra un MLP de una capa de 50 neuronas con `tanh`, mientras que el primer bloque de SMOTE registra una capa de 100 neuronas con `relu`. Son configuraciones históricas y no describen necesariamente el modelo que carga hoy la interfaz.
+`configuracion_ROS.txt` and `configuracion_SMOTE.txt` preserve hyperparameters for different feature selections. For example, the first ROS block records a one-hidden-layer MLP with 50 neurons and `tanh`, while the first SMOTE block records 100 neurons and `relu`. These are historical configurations and do not necessarily describe the model currently loaded by the interface.
 
-## 6. Resultados históricos de ROS y SMOTE
+## 6. Historical ROS and SMOTE results
 
-Los archivos de texto contienen varios bloques, algunos repetidos. La tabla siguiente reproduce exclusivamente el primer bloque titulado «Con todos los rasgos» de cada archivo. Los vectores se presentan en el orden conservado en la fuente.
+The text files contain multiple blocks, some repeated. This table reproduces only the first block labeled `Con todos los rasgos`, meaning all features, in each file. Vectors retain their source order.
 
-| Método | Modelo | Recall por clase | F1 por clase | Valor rotulado AUC-ROC |
+| Method | Model | Recall by class | F1 by class | Value labeled AUC-ROC |
 | --- | --- | --- | --- | --- |
-| ROS | KNN | 1,00 / 0,85 | 0,9091 / 0,9189 | 0,9250 |
-| ROS | Regresión logística | 0,80 / 0,70 | 0,7273 / 0,7568 | 0,7500 |
-| ROS | MLP | 1,00 / 0,90 | 0,9375 / 0,9474 | 0,9500 |
-| SMOTE | KNN | 0,8667 / 0,75 | 0,7879 / 0,8108 | 0,8083 |
-| SMOTE | Regresión logística | 1,00 / 0,75 | 0,8571 / 0,8571 | 0,8750 |
-| SMOTE | MLP | 0,80 / 0,90 | 0,8276 / 0,8780 | 0,8500 |
+| ROS | KNN | 1.00 / 0.85 | 0.9091 / 0.9189 | 0.9250 |
+| ROS | Logistic regression | 0.80 / 0.70 | 0.7273 / 0.7568 | 0.7500 |
+| ROS | MLP | 1.00 / 0.90 | 0.9375 / 0.9474 | 0.9500 |
+| SMOTE | KNN | 0.8667 / 0.75 | 0.7879 / 0.8108 | 0.8083 |
+| SMOTE | Logistic regression | 1.00 / 0.75 | 0.8571 / 0.8571 | 0.8750 |
+| SMOTE | MLP | 0.80 / 0.90 | 0.8276 / 0.8780 | 0.8500 |
 
-Las variantes que eliminan diagnósticos modifican esos resultados. Por ejemplo, el bloque de SMOTE sin `Diag.Egr1` registra para MLP recall de 0,9333 y 0,90, F1 de 0,9032 y 0,9231, y un valor rotulado AUC-ROC de 0,9167.
+Removing diagnoses changes these results. For example, the SMOTE block without `Diag.Egr1` records MLP recall of 0.9333 and 0.90, F1 of 0.9032 and 0.9231, and a value labeled AUC-ROC of 0.9167.
 
-Estos archivos documentan ejecuciones y permiten reconstruir las comparaciones realizadas. Sus repeticiones y la falta de identificadores únicos por ejecución impiden tratarlos como un registro experimental normalizado o atribuir cada bloque con certeza a un artefacto serializado.
+These files document executions and help reconstruct comparisons. Repeated blocks and the absence of unique run identifiers prevent treating them as a normalized experiment registry or confidently linking each block to a serialized artifact.
 
-Además, distintas celdas calculan `roc_auc_score` usando `y_pred`, es decir, etiquetas discretas. Esos valores no equivalen a evaluar la capacidad de ordenación de las probabilidades mediante una curva ROC completa. Por esa razón se conserva la denominación original con una aclaración y no se presenta el mayor valor como prueba de superioridad clínica definitiva.
+Several cells calculate `roc_auc_score` using `y_pred`, meaning discrete labels. These values are not equivalent to evaluating probability ranking through a full ROC curve. The original label is therefore retained with this qualification; the highest value is not presented as definitive evidence of clinical superiority.
 
-## 7. Nuevos flujos de preprocesamiento y entrenamiento
+## 7. New preprocessing and training workflows
 
-`test-workflow.ipynb`, `test-mlp-workflow.ipynb` y `test-lr-workflow.ipynb` organizan una generación posterior de experimentos. En ellos se separan los diagnósticos como variables categóricas y edad, APACHE y tiempo de ventilación como variables numéricas.
+`test-workflow.ipynb`, `test-mlp-workflow.ipynb`, and `test-lr-workflow.ipynb` organize a later generation of experiments. Diagnoses are treated as categorical features, while age, APACHE, and ventilation duration are numerical.
 
-El preprocesamiento utiliza `ColumnTransformer`, `OneHotEncoder` con `handle_unknown="infrequent_if_exist"` y `RobustScaler`. De esta manera, el flujo conserva juntos la transformación de columnas y el clasificador mediante un pipeline.
+Preprocessing uses `ColumnTransformer`, `OneHotEncoder` with `handle_unknown="infrequent_if_exist"`, and `RobustScaler`. A pipeline keeps column transformations and the classifier together.
 
-La partición principal reserva un 10 % para prueba, con estratificación por `Fallece` y semilla 42. El MLP de esa comparación tiene capas ocultas de 200, 150, 100 y 50 neuronas, activación ReLU, optimizador Adam, parada temprana y hasta 1000 iteraciones.
+The main split reserves 10% for testing, stratified by `Fallece`, with random seed 42. The MLP in that comparison has hidden layers of 200, 150, 100, and 50 neurons, ReLU activation, the Adam optimizer, early stopping, and up to 1000 iterations.
 
-Los cuadernos generan conjuntos de entrenamiento con ADASYN, SMOTE, BorderlineSMOTE y ROS y reajustan el pipeline con cada variante. La regresión logística utiliza una estructura semejante para facilitar la comparación. En esa variante, el paso del clasificador mantiene el nombre interno `mlp`, aunque su objeto sea `LogisticRegression`.
+The notebooks generate training sets using ADASYN, SMOTE, BorderlineSMOTE, and ROS and refit the pipeline with each variant. Logistic regression uses a similar structure for comparison. Its classifier step retains the internal name `mlp` even though the object is `LogisticRegression`.
 
-`test-workflow.ipynb` contiene además una búsqueda posterior con tres particiones y un pipeline que integra SMOTE después del preprocesamiento. Esa sección explora un MLP de dos capas de 200 y 150 neuronas. Convive con la comparación anterior y no debe confundirse automáticamente con el artefacto guardado antes en el cuaderno.
+`test-workflow.ipynb` also contains a later three-fold search and a pipeline placing SMOTE after preprocessing. That section explores a two-hidden-layer MLP with 200 and 150 neurons. It coexists with the earlier comparison and should not automatically be equated with the artifact saved earlier in the notebook.
 
-Los flujos se serializan como `new_workflow.joblib` y `new_workflow_lr.joblib`. La aplicación carga el primero. La correspondencia exacta entre sus parámetros internos y una ejecución concreta no se comprobó deserializando los archivos durante esta revisión.
+Workflows are serialized as `new_workflow.joblib` and `new_workflow_lr.joblib`. The application loads the former. The exact correspondence between their internal parameters and a particular execution was not checked by deserializing the files during this review.
 
-## 8. Inferencia y pruebas de campo
+## 8. Inference and field tests
 
-`inference.ipynb` carga el flujo guardado, calcula clases y probabilidades y añade al conjunto columnas de predicción. También identifica observaciones donde la predicción difiere de `Fallece`.
+`inference.ipynb` loads the saved workflow, calculates classes and probabilities, and adds prediction columns to the dataset. It also identifies observations where the prediction differs from `Fallece`.
 
-La salida guardada muestra una matriz de confusión `[[158, 18], [6, 26]]` para 208 observaciones. El informe registra exactitud aproximada de 0,88, recall de 0,90 para la clase 0 y de 0,81 para la clase 1, con F1 de 0,93 y 0,68. El valor mostrado como AUC-ROC es 0,86 y se calcula sobre clases predichas. Como el cuaderno aplica el modelo al conjunto cargado, estas cifras no establecen por sí solas rendimiento en pacientes independientes del entrenamiento.
+Its saved output shows confusion matrix `[[158, 18], [6, 26]]` for 208 observations. The report gives approximately 0.88 accuracy, recall of 0.90 for class 0 and 0.81 for class 1, and F1 of 0.93 and 0.68. The displayed AUC-ROC is 0.86, calculated from predicted classes. Because the notebook applies the model to the loaded dataset, these figures alone do not establish performance on patients independent of training.
 
-`Prueba de campo.ipynb` incorpora una evaluación sobre un archivo Excel. Su salida conserva exactitud balanceada aproximada de 0,5982 y kappa de Cohen de 0,0862. El recall por clase aparece como 0,3333 y 0,8630, con F1 de 0,1429 y 0,9130. La codificación de clases debe revisarse antes de compararla directamente con los flujos posteriores.
+`Prueba de campo.ipynb` evaluates an Excel field-test dataset. Its output preserves approximately 0.5982 balanced accuracy and 0.0862 Cohen's kappa. Recall by class is 0.3333 and 0.8630, with F1 of 0.1429 and 0.9130. Class encoding must be checked before directly comparing this with later workflows.
 
-En los flujos nuevos, las salidas guardadas de prueba interna utilizan 21 observaciones, de las cuales tres pertenecen a la clase 1. El bloque inicial tanto de MLP como de regresión logística muestra recall de 1,00 para esa clase y precisión de 0,38. Esto representa tres casos detectados, con varios falsos positivos, y no una estimación precisa de sensibilidad poblacional.
+The newer workflows' saved internal test outputs use 21 observations, including three in class 1. The initial blocks for both MLP and logistic regression show class-1 recall of 1.00 and precision of 0.38. This represents three detected cases with several false positives, not a precise estimate of population sensitivity.
 
-Las pruebas de campo de esos cuadernos muestran 76 observaciones, 73 de clase 0 y tres de clase 1:
+Their field-test outputs contain 76 observations: 73 in class 0 and three in class 1.
 
-| Flujo | Exactitud | Precisión de clase 1 | Recall de clase 1 | F1 de clase 1 | Valor rotulado AUC-ROC |
+| Workflow | Accuracy | Class-1 precision | Class-1 recall | Class-1 F1 | Value labeled AUC-ROC |
 | --- | --- | --- | --- | --- | --- |
-| MLP | 0,82 | 0,18 | 1,00 | 0,30 | 0,90 |
-| Regresión logística | 0,68 | 0,08 | 0,67 | 0,14 | 0,68 |
+| MLP | 0.82 | 0.18 | 1.00 | 0.30 | 0.90 |
+| Logistic regression | 0.68 | 0.08 | 0.67 | 0.14 | 0.68 |
 
-Son salidas conservadas, no resultados reproducidos para este documento. La proporción de fallecimientos y el reducido número de casos positivos limitan las conclusiones. La precisión baja también muestra que detectar esos casos puede acompañarse de muchas alertas sobre pacientes supervivientes.
+These are preserved outputs, not results reproduced for this document. Mortality prevalence and the small number of positive cases limit conclusions. Low precision also shows that detecting those cases can produce many alerts for patients who survive.
 
-## 9. Explicabilidad de las predicciones
+## 9. Prediction explainability
 
-`Classification.ipynb` reúne experimentos con LIME, SHAP, Integrated Gradients y Saliency. Se utilizaron tanto las implementaciones de `interpret.blackbox` como bibliotecas específicas de LIME y SHAP. Para los métodos de gradiente se empleó Captum sobre PyTorch.
+`Classification.ipynb` contains experiments with LIME, SHAP, Integrated Gradients, and Saliency. It uses both `interpret.blackbox` implementations and dedicated LIME and SHAP libraries. Gradient methods use Captum with PyTorch.
 
-Una parte del trabajo copia coeficientes e interceptos de un MLP de scikit-learn a una red de PyTorch. La arquitectura declarada en esa celda tiene seis entradas, dos capas de 50 neuronas con activación `tanh` y una salida sigmoide. La transferencia permite aplicar técnicas basadas en gradientes a una representación del clasificador.
+Part of the work copies coefficients and intercepts from a scikit-learn MLP into a PyTorch network. The architecture declared in that cell has six inputs, two hidden layers of 50 neurons with `tanh` activation, and a sigmoid output. This transfer allows gradient-based techniques to operate on a representation of the classifier.
 
-El repositorio conserva explicadores serializados en `Explainers/`, incluidos archivos para Integrated Gradients, Saliency, LIME y SHAP. Se generaron visualizaciones locales y se exploró la relevancia positiva o negativa de las variables para observaciones concretas.
+The repository preserves serialized explainers in `Explainers/`, including Integrated Gradients, Saliency, LIME, and SHAP files. Local visualizations were generated to explore positive and negative feature contributions for individual observations.
 
-También se implementó una evaluación por perturbaciones. `modify_instance` modifica características seleccionadas por su relevancia, y `calculate_fidelity` calcula la proporción de repeticiones en que se mantiene la clase predicha. Ese procedimiento registra estabilidad bajo las perturbaciones definidas en el cuaderno. No demuestra por sí solo causalidad clínica ni una validación universal de fidelidad de la explicación.
+A perturbation-based evaluation was also implemented. `modify_instance` changes features selected by relevance, and `calculate_fidelity` calculates the fraction of repetitions retaining the predicted class. This records stability under the notebook's defined perturbations. It does not by itself demonstrate clinical causality or universal explanation fidelity.
 
-La aplicación actual utiliza `Explainers/ig_explainer.pkl`, mientras que la predicción procede de `new_workflow.joblib`. La revisión no verificó que ese explicador represente exactamente el mismo modelo y preprocesamiento del flujo actualizado. La relación entre ambos artefactos es un punto pendiente para interpretar sus atribuciones con confianza.
+The current application uses `Explainers/ig_explainer.pkl`, while predictions come from `new_workflow.joblib`. This review did not verify that the explainer represents exactly the same model and preprocessing as the updated workflow. Their relationship remains to be checked before interpreting the attributions with confidence.
 
-## 10. Aplicación web con Streamlit
+## 10. Streamlit web application
 
-`web_app.py` implementa una interfaz para consultar la probabilidad de no supervivencia al egreso de UCI. La barra lateral recoge edad, dos diagnósticos de ingreso, segundo diagnóstico de egreso, APACHE II y tiempo de ventilación.
+`web_app.py` implements an interface for estimating non-survival at ICU discharge. Its sidebar collects age, two admission diagnoses, the second discharge diagnosis, APACHE II, and ventilation duration.
 
-La aplicación incorpora un catálogo de 49 códigos, del 0 al 48. El código 0 corresponde a una opción vacía, mientras que los restantes incluyen diagnósticos y condiciones como sepsis, shock, traumatismo craneoencefálico, insuficiencia renal y otros. Los diccionarios permiten mostrar descripciones y enviar al modelo los códigos esperados.
+The application includes 49 codes, numbered 0 through 48. Code 0 represents an empty option; the remaining entries include diagnoses and conditions such as sepsis, shock, severe traumatic brain injury, renal failure, and others. Dictionaries display descriptions while sending the expected numerical codes to the model.
 
-El recorrido implementado es el siguiente:
+The implemented flow is:
 
-1. Introducir las características del paciente.
-2. Ver una tabla de las entradas con etiquetas en inglés.
-3. Pulsar `Predict` para obtener `predict_proba(input_df)[:, 1]`.
-4. Ver la probabilidad en formato porcentual, bajo un encabezado que menciona un corte del 50 %.
-5. Pulsar `Explain` para calcular atribuciones y solicitar una narrativa.
+1. Enter patient characteristics.
+2. Review an input table with English labels.
+3. Select `Predict` to obtain `predict_proba(input_df)[:, 1]`.
+4. View the percentage probability under a heading mentioning a 50% cutoff.
+5. Select `Explain` to calculate attributions and request a narrative.
 
-La probabilidad se conserva en `st.session_state`. Si se intenta explicar antes de predecir, la interfaz pide realizar primero una predicción. La gráfica de relevancia ordena las variables por valor absoluto, con naranja para contribuciones positivas y azul para negativas.
+The probability is retained in `st.session_state`. Attempting to explain before predicting produces a request to make a prediction first. The relevance chart orders features by absolute value, using orange for positive contributions and blue for negative ones.
 
-El flujo depende de que los archivos serializados estén disponibles y sean compatibles con las bibliotecas instaladas. El resumen no incluye una prueba de arranque de Streamlit ni una comprobación interactiva de su funcionamiento.
+Execution depends on serialized files being available and compatible with installed libraries. This summary does not include a Streamlit startup test or interactive verification.
 
-## 11. Narrativas mediante modelos de lenguaje
+## 11. Language-model narratives
 
-`llms/model-explain-text.ipynb` explora la transformación de explicaciones numéricas en texto. Carga el pipeline, prepara explicaciones SHAP y construye un prompt con nombres de variables, valores observados y contribuciones. El historial registra su incorporación antes de trasladar esa capacidad a la interfaz.
+`llms/model-explain-text.ipynb` explores turning numerical explanations into text. It loads the pipeline, prepares SHAP explanations, and builds a prompt containing feature names, observed values, and contributions. History records this experiment before narrative generation was brought into the interface.
 
-En la versión actual de `web_app.py`, el texto se construye a partir de atribuciones de Integrated Gradients. Los códigos diagnósticos se convierten en descripciones antes de enviarse al generador. El prompt solicita una síntesis clínica de los factores más influyentes en el contexto de mortalidad oculta en UCI.
+In the current `web_app.py`, text is built from Integrated Gradients attributions. Diagnosis codes are converted to descriptions before sending them to the generator. The prompt requests a clinical synthesis of the most influential factors in the context of hidden ICU mortality.
 
-La clave se obtiene de `.env` mediante `GEMINI_API_KEY`. El código configura Gemini, utiliza el identificador `gemini-2.5-flash-lite` y establece temperatura 0,7. La respuesta debe comenzar por `Narrative:`; la interfaz elimina ese prefijo y muestra el texto en un cuadro informativo.
+The key is read from `.env` using `GEMINI_API_KEY`. The code configures Gemini, uses `gemini-2.5-flash-lite`, and sets temperature to 0.7. The response must begin with `Narrative:`; the interface removes the prefix and displays the text in an information box.
 
-Esta integración añade una capa de presentación textual de las atribuciones. El cálculo de la probabilidad sigue correspondiendo al pipeline local. El código transmite al proveedor los valores clínicos y las atribuciones incluidos en el prompt; esta revisión no realizó esa transmisión ni evaluó la corrección clínica de una narrativa generada.
+This integration adds a textual presentation layer for attributions. The local pipeline still computes the probability. The code transmits clinical values and attributions included in the prompt to the provider; this review did not transmit them or evaluate the clinical correctness of generated narratives.
 
-## 12. Artefactos y organización del repositorio
+## 12. Artifacts and repository organization
 
-Los resultados del trabajo se distribuyen entre cuadernos, modelos, explicadores y archivos de apoyo:
+The work is distributed among notebooks, models, explainers, and supporting files:
 
-| Archivo o grupo | Aporte conservado |
+| File or group | Preserved contribution |
 | --- | --- |
-| `Classification.ipynb` | Exploración, clasificación, explicabilidad, transferencia de pesos y perturbaciones. |
-| Cuadernos `Classification_*` | Variantes de sobremuestreo y selección de modelos. |
-| `All.ipynb` | Cuaderno auxiliar con importaciones de herramientas de explicabilidad. |
-| `Prueba de campo.ipynb` | Evaluación con datos de un archivo de campo en Excel. |
-| `inference.ipynb` | Predicciones, probabilidades y revisión de errores. |
-| Cuadernos `test-*workflow.ipynb` | Preprocesamiento categórico y numérico, comparación de aumentos y serialización. |
-| `llms/model-explain-text.ipynb` | Experimento de narrativas a partir de explicaciones. |
-| `Modelos/*.pkl` | Clasificadores históricos de KNN, regresión logística y MLP. |
-| `Explainers/*.pkl` | Explicadores guardados con distintas bibliotecas. |
-| `modelo_completo.pth`, `modelo_mlp_ROS_pt.pth` | Artefactos de PyTorch. |
-| `new_workflow.joblib`, `new_workflow_lr.joblib` | Flujos serializados de generaciones posteriores. |
-| `Resultados_*.txt`, `configuracion_*.txt` | Métricas e hiperparámetros de experimentos. |
-| `web_app.py` | Interfaz Streamlit e integración narrativa con Gemini. |
-| `requirements.txt` | Dependencias del entorno. |
-| `.devcontainer/devcontainer.json` | Configuración del entorno de desarrollo y arranque de Streamlit. |
+| `Classification.ipynb` | Exploration, classification, explainability, weight transfer, and perturbations. |
+| `Classification_*` notebooks | Oversampling and model-selection variants. |
+| `All.ipynb` | Auxiliary notebook importing explainability tools. |
+| `Prueba de campo.ipynb` | Evaluation using field-test data in Excel. |
+| `inference.ipynb` | Predictions, probabilities, and error review. |
+| `test-*workflow.ipynb` notebooks | Categorical and numerical preprocessing, augmentation comparisons, and serialization. |
+| `llms/model-explain-text.ipynb` | Narrative experiments based on explanations. |
+| `Modelos/*.pkl` | Historical KNN, logistic regression, and MLP classifiers. |
+| `Explainers/*.pkl` | Explainers saved using several libraries. |
+| `modelo_completo.pth`, `modelo_mlp_ROS_pt.pth` | PyTorch artifacts. |
+| `new_workflow.joblib`, `new_workflow_lr.joblib` | Later serialized workflows. |
+| `Resultados_*.txt`, `configuracion_*.txt` | Experiment metrics and hyperparameters. |
+| `web_app.py` | Streamlit interface and Gemini narrative integration. |
+| `requirements.txt` | Environment dependencies. |
+| `.devcontainer/devcontainer.json` | Development environment and Streamlit startup configuration. |
 
-También hay archivos de configuración del IDE, checkpoints de Jupyter y restos en `.tmp.driveupload/`. Esos elementos forman parte del material versionado, pero no representan nuevas capacidades del modelo.
+The repository also contains IDE configuration, Jupyter checkpoints, and remnants in `.tmp.driveupload/`. These are versioned materials, but they do not represent additional model capabilities.
 
-## 13. Entorno de desarrollo y dependencias
+## 13. Development environment and dependencies
 
-El entorno reúne herramientas de análisis de datos, aprendizaje automático, visualización, explicabilidad y generación de texto. Entre las dependencias declaradas figuran pandas, NumPy, scikit-learn, imbalanced-learn, PyTorch, Captum, LIME, SHAP, InterpretML, Matplotlib, Streamlit, joblib, cloudpickle y clientes de servicios de lenguaje.
+The environment combines data analysis, machine learning, visualization, explainability, and text-generation tools. Declared dependencies include pandas, NumPy, scikit-learn, imbalanced-learn, PyTorch, Captum, LIME, SHAP, InterpretML, Matplotlib, Streamlit, joblib, cloudpickle, and language-service clients.
 
-El historial muestra varias ampliaciones y reducciones de `requirements.txt`, además de ajustes para resolver conflictos y retirar dependencias específicas de Windows. El archivo revisado contiene numerosas versiones fijadas y se guarda en UTF-16. Los archivos de configuración de experimentos utilizan otra codificación, por lo que no todo el material textual se lee directamente como UTF-8.
+History shows several expansions and reductions of `requirements.txt`, plus adjustments to resolve conflicts and remove Windows-specific dependencies. The reviewed file pins many versions and is encoded in UTF-16. Experiment configuration files use another encoding, so not all text can be read directly as UTF-8.
 
-El contenedor de desarrollo utiliza una imagen de Python 3.11 sobre Debian Bullseye. Instala dependencias, prepara Streamlit y configura la ejecución de `web_app.py`, con reenvío del puerto 8501. Esa configuración documenta un camino de ejecución para desarrollo; no demuestra un despliegue público operativo.
+The development container uses Python 3.11 on Debian Bullseye. It installs dependencies, prepares Streamlit, and configures `web_app.py` with port 8501 forwarding. This documents a development execution path, not an operational public deployment.
 
-La exclusión de `.env` evita que nuevas claves locales entren en Git por la vía habitual. También se excluyen datos tabulares y un directorio de entorno virtual. La reproducción completa requiere disponer de los conjuntos externos que los cuadernos referencian.
+Ignoring `.env` keeps new local keys out of ordinary Git tracking. Tabular data files and a virtual-environment directory are also excluded. Full reproduction requires the external datasets referenced by the notebooks.
 
-## 14. Qué queda establecido y qué requiere comprobación
+## 14. Established findings and remaining checks
 
-El trabajo conservado establece una cadena experimental amplia: inspección de datos clínicos, comparación de tres familias de clasificadores, distintas formas de sobremuestreo, selección de hiperparámetros, evaluación interna y de campo, explicaciones locales y una interfaz con generación narrativa.
+The preserved work establishes a broad experimental sequence: clinical data inspection, three classifier families, several oversampling techniques, hyperparameter selection, internal and field evaluation, local explanations, and an interface with narrative generation.
 
-La evidencia revisada deja varias comprobaciones abiertas:
+The reviewed evidence leaves these checks open:
 
-- Reproducir los experimentos con los datos originales y un registro inequívoco de las particiones.
-- Separar rigurosamente ajuste, sobremuestreo y evaluación, especialmente al interpretar resultados antiguos.
-- Verificar el significado y la consistencia de la clase positiva entre versiones de los conjuntos.
-- Calcular AUC sobre probabilidades cuando se quiera medir discriminación y distinguirla de la evaluación sobre etiquetas.
-- Confirmar las unidades de `TiempoVAM` y la disponibilidad temporal de los diagnósticos de egreso para el uso previsto.
-- Verificar que el explicador cargado por la aplicación corresponde al pipeline que produce la probabilidad.
-- Asociar cada modelo serializado con sus datos, parámetros, versiones y métricas de origen.
-- Evaluar con más casos positivos la sensibilidad, la precisión y el volumen de falsas alertas.
-- Comprobar calibración de probabilidades y utilidad del umbral si se pretende utilizar el resultado en decisiones clínicas.
+- Reproduce experiments using the original data and an unambiguous record of partitions.
+- Separate fitting, oversampling, and evaluation rigorously, especially when interpreting older results.
+- Verify the meaning and consistency of the positive class across dataset versions.
+- Calculate AUC from probabilities when measuring discrimination and distinguish it from label-based evaluation.
+- Confirm `TiempoVAM` units and the availability of discharge diagnoses at the intended prediction time.
+- Verify that the application's explainer corresponds to the pipeline producing its probability.
+- Associate each serialized model with its source data, parameters, dependency versions, and metrics.
+- Evaluate sensitivity, precision, and false-alert volume using more positive cases.
+- Assess probability calibration and threshold usefulness if results are intended to inform clinical decisions.
 
-Estos puntos son límites y posibles pasos de continuación, no tareas completadas durante la redacción. La presencia de un prototipo y de métricas guardadas no permite afirmar que exista validación clínica prospectiva, integración hospitalaria o uso asistencial demostrado.
+These are limitations and possible next steps, not work completed while preparing the summary. A prototype and saved metrics do not establish prospective clinical validation, hospital integration, or demonstrated clinical use.
 
-## 15. Balance del trabajo realizado
+## 15. Assessment of completed work
 
-El repositorio muestra el paso de pruebas iniciales de clasificación a un prototipo que recibe datos clínicos, produce una probabilidad y ofrece una explicación visual acompañada de texto. El desarrollo conserva alternativas de modelado y varios intentos de mejorar el tratamiento de los diagnósticos, las escalas numéricas y el desequilibrio de clases.
+The repository records the progression from initial classification tests to a prototype that accepts clinical data, produces a probability, and provides a visual explanation with text. It preserves alternative models and several attempts to improve diagnosis handling, numerical scaling, and class imbalance treatment.
 
-Su aportación documentada incluye los experimentos de KNN, regresión logística y MLP, la comparación de ROS y técnicas sintéticas, las pruebas de campo, el uso de cuatro familias de explicadores y la incorporación de un modelo de lenguaje para redactar narrativas. Los archivos permiten estudiar tanto los avances como las diferencias entre generaciones del flujo.
+Its documented contributions include KNN, logistic regression, and MLP experiments; ROS and synthetic-method comparisons; field tests; four explainer families; and language-model narratives. The files make it possible to study both progress and differences between workflow generations.
 
-El estado descrito corresponde a un proyecto de investigación y prototipado con resultados históricos conservados. La siguiente etapa de evaluación deberá vincular esos resultados a ejecuciones reproducibles y comprobar que predicción, preprocesamiento y explicación describen el mismo sistema.
+The reviewed state is a research and prototyping project with preserved historical results. Further evaluation needs to connect those results to reproducible executions and verify that prediction, preprocessing, and explanation describe the same system.
 
-## 16. Fuentes internas de este resumen
+## 16. Internal sources
 
-La reconstrucción histórica procede del historial Git disponible, entre `bdba1c0` y `2cf8140`. La descripción funcional se apoya en `web_app.py`, los cuadernos enumerados en este documento, los archivos de resultados y configuración, `requirements.txt`, `.gitignore` y `.devcontainer/devcontainer.json`.
+Historical reconstruction uses available Git history from `bdba1c0` through `2cf8140`. Functional descriptions draw on `web_app.py`, the notebooks listed here, result and configuration files, `requirements.txt`, `.gitignore`, and `.devcontainer/devcontainer.json`.
 
-Se comprobó la existencia de los modelos y explicadores versionados, sin ejecutar su deserialización. Los cuadernos se inspeccionaron como documentos JSON, incluyendo código y salidas guardadas, sin ejecutar sus celdas. No se consultaron fuentes externas ni se incorporaron datos identificativos de pacientes al resumen.
+The presence of versioned models and explainers was checked without deserializing them. Notebooks were inspected as JSON documents, including code and saved outputs, without executing cells. No external sources were consulted for the original experimental summary, and no patient-identifying data were included. Public SADUCI references were subsequently verified when documenting the integration.
