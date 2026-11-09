@@ -6,6 +6,12 @@ Este documento reúne el trabajo que consta en los archivos y en el historial de
 
 La revisión se basa en el código, las celdas y salidas guardadas de los cuadernos, los archivos de resultados y configuración, los artefactos versionados y los mensajes de los commits. No se reentrenaron modelos ni se ejecutaron consultas a servicios de IA para redactarlo. Las métricas citadas son resultados históricos conservados, no mediciones nuevas.
 
+## Continuidad del trabajo e integración en SADUCI
+
+La capacidad predictiva de este proyecto ya tiene una integración en el repositorio público [coslatte/saduci](https://github.com/coslatte/saduci). Allí se utiliza una copia binariamente idéntica de `new_workflow.joblib` dentro del servicio de predicción, con contratos HTTP, persistencia y generación narrativa. Esto identifica un destino concreto para la ejecución integrada del modelo, sin implicar que todos los cuadernos o explicadores se hayan trasladado.
+
+El [informe de integración y traslado](IntegracionSADUCI2026.md) describe qué elementos permanecen como investigación en este repositorio, cuáles se incorporaron o adaptaron en SADUCI y qué diferencias requieren actualización. También distingue ese movimiento funcional de la contribución de ambos informes al repositorio original mediante un fork. La documentación conserva el origen de los experimentos y enlaza su continuación en el sistema integrado.
+
 ## 1. Propósito y alcance del proyecto
 
 El proyecto estudia la predicción de mortalidad en pacientes de una unidad de cuidados intensivos mediante aprendizaje automático. Su evolución combina experimentación con datos clínicos, comparación de clasificadores, tratamiento del desequilibrio entre clases y explicación de predicciones individuales. Posteriormente se incorporó una interfaz web para introducir características de un paciente y consultar una probabilidad de no supervivencia al egreso de la UCI.

@@ -1,4 +1,4 @@
-# Informe y planificación de integración y actualización con SADUCI
+# Traslado del prototipo a SADUCI: integración existente y actualización pendiente
 
 Fecha: 9 de noviembre de 2026.
 
@@ -10,7 +10,27 @@ La integración básica del modelo ya existe. SADUCI dispone de un servicio de p
 
 Se propone mantener este repositorio como espacio de investigación y entrenamiento y SADUCI como sistema de ejecución y ayuda a la valoración clínica. Las nuevas versiones se transferirían como paquetes de modelo verificables, con sus contratos y evidencia de evaluación. La interfaz asistencial seguiría siendo la de SADUCI.
 
-Este documento es una planificación técnica. No modifica los servicios de SADUCI, no despliega modelos y no acredita validación clínica. Se complementa con [Summary2026.md](Summary2026.md), que recoge el trabajo experimental de origen.
+Este documento describe el traslado de capacidades del prototipo al sistema SADUCI y planifica la actualización de esa integración. El destino es el repositorio público [coslatte/saduci](https://github.com/coslatte/saduci). Esta contribución no modifica los servicios de SADUCI, no despliega modelos y no acredita validación clínica. Se complementa con [Summary2026.md](Summary2026.md), que recoge el trabajo experimental de origen.
+
+### 1.1. Origen, destino y sentido del traslado
+
+El punto de partida es [acferriol/Intensive-Care-Hidden-Mortality](https://github.com/acferriol/Intensive-Care-Hidden-Mortality), que conserva los cuadernos de investigación, modelos, explicadores y el prototipo Streamlit. El destino de la integración funcional es [coslatte/saduci](https://github.com/coslatte/saduci), un sistema con usuarios, pacientes, predicción, simulación e historial.
+
+El traslado documentado consiste en incorporar la capacidad predictiva a los servicios y recorridos de SADUCI. No equivale a copiar íntegramente los cuadernos, reemplazar el repositorio de origen ni retirar automáticamente su aplicación. La procedencia experimental permanece en este proyecto; la ejecución integrada reside en SADUCI. Esa separación es la organización recomendada para continuar el trabajo, no una política de mantenimiento acordada entre ambos repositorios.
+
+| Elemento de origen | Destino en SADUCI | Estado y alcance comprobados |
+| --- | --- | --- |
+| `new_workflow.joblib` | `apps/core/src/prediction/models/v1/new_workflow.joblib` | Incorporado; ambos archivos tienen el mismo SHA-256. |
+| Preparación del DataFrame y predicción en `web_app.py` | `prediction/app/services/inference.py` | Adaptado a solicitudes del servicio con las mismas seis variables; la paridad de ejecución queda por comprobar. |
+| Captura y presentación en Streamlit | Plataforma web, BFF, gateway y servicio `prediction` | SADUCI dispone de un recorrido integrado documentado; no se comprobó interacción de navegador durante esta revisión. |
+| Explicador de Integrated Gradients en `Explainers/` | Impacto local por referencia en `inference.py` | El destino utiliza otro cálculo; no se ha demostrado traslado equivalente de los explicadores originales. |
+| Narrativa Gemini dentro de `web_app.py` | `prediction/app/services/narrative.py` y `narrative_model.py` | Capacidad adaptada a proveedores y ejecución local; no se realizaron llamadas de generación para verificarla. |
+| Cuadernos y resultados históricos | Evidencia de investigación en el repositorio de origen | No se propone ejecutarlos como parte de una petición clínica ni se acredita que hayan sido migrados a SADUCI. |
+| Consulta puntual del prototipo | Registros en `prediction_db` | SADUCI añade persistencia y autoría; falta completar procedencia de versión y vínculo con la explicación. |
+
+Hay dos movimientos distintos. El primero es la integración funcional hacia SADUCI, cuyo estado y brechas se describen aquí. El segundo es la contribución de esta documentación al repositorio de origen mediante el fork [coslatte/Intensive-Care-Hidden-Mortality-SADUCI-Integration](https://github.com/coslatte/Intensive-Care-Hidden-Mortality-SADUCI-Integration) y el [pull request #6](https://github.com/acferriol/Intensive-Care-Hidden-Mortality/pull/6). Ese pull request incorpora informes, sin mover código de ejecución ni modificar el despliegue de ninguno de los proyectos.
+
+La planificación posterior parte de lo ya integrado. Su objetivo es completar la correspondencia de entradas, explicaciones, versiones y registros antes de promover un modelo actualizado. No declara finalizado el traslado completo del proyecto ni anuncia el archivo del repositorio original.
 
 ## 2. Alcance y método de revisión
 
@@ -55,7 +75,7 @@ flowchart LR
 
 La integración de mortalidad pertenece a `Prediction Service`, en el puerto interno 7003. El navegador debe seguir accediendo por el BFF y el gateway. No se propone añadir un acceso directo a Streamlit ni conectar el navegador al servicio interno.
 
-Referencia: [arquitectura de SADUCI](https://github.com/coslatte/saduci/blob/0553b3b/docs/sistema/ARCHITECTURE.md). Algunas notas finales de esa documentación describen mecanismos antiguos de migración, mientras que las instrucciones actuales del backend y el Dockerfile indican Alembic. Para planificar cambios prevalecen el código y las instrucciones vigentes.
+Referencia: [arquitectura de SADUCI](https://github.com/coslatte/saduci/blob/0553b3b0e82dcb3584b6662e1417a070530879df/docs/sistema/ARCHITECTURE.md). Algunas notas finales de esa documentación describen mecanismos antiguos de migración, mientras que las instrucciones actuales del backend y el Dockerfile indican Alembic. Para planificar cambios prevalecen el código y las instrucciones vigentes.
 
 ### 3.3. Capacidades presentes
 
@@ -375,17 +395,17 @@ Esa secuencia permite mejorar la integración sin atribuir al modelo un rendimie
 ## 15. Fuentes internas principales
 
 - [Resumen del proyecto de origen](Summary2026.md).
-- [Arquitectura de SADUCI](https://github.com/coslatte/saduci/blob/0553b3b/docs/sistema/ARCHITECTURE.md).
-- [Instrucciones de SADUCI](https://github.com/coslatte/saduci/blob/0553b3b/AGENTS.md).
-- [Contrato de predicción](https://github.com/coslatte/saduci/blob/0553b3b/apps/core/src/shared_core/schemas/prediction.py).
-- [Inferencia e impacto por referencia](https://github.com/coslatte/saduci/blob/0553b3b/apps/core/src/prediction/app/services/inference.py).
-- [Predicción, explicación y persistencia](https://github.com/coslatte/saduci/blob/0553b3b/apps/core/src/prediction/app/services/prediction_service.py).
-- [Carga del pipeline](https://github.com/coslatte/saduci/blob/0553b3b/apps/core/src/prediction/app/services/ml_model.py).
-- [Configuración y códigos](https://github.com/coslatte/saduci/blob/0553b3b/apps/core/src/prediction/app/services/config.py).
-- [Generación narrativa](https://github.com/coslatte/saduci/blob/0553b3b/apps/core/src/prediction/app/services/narrative.py).
-- [Modelo narrativo local](https://github.com/coslatte/saduci/blob/0553b3b/apps/core/src/prediction/app/services/narrative_model.py).
-- [Activo narrativo y checksum](https://github.com/coslatte/saduci/blob/0553b3b/apps/core/src/prediction/app/services/model_assets.py).
-- [Entidades persistidas](https://github.com/coslatte/saduci/blob/0553b3b/apps/core/src/prediction/app/models/entities.py).
-- [Pruebas del servicio](https://github.com/coslatte/saduci/blob/0553b3b/apps/core/tests/prediction/test_prediction_api.py).
+- [Arquitectura de SADUCI](https://github.com/coslatte/saduci/blob/0553b3b0e82dcb3584b6662e1417a070530879df/docs/sistema/ARCHITECTURE.md).
+- [Instrucciones de SADUCI](https://github.com/coslatte/saduci/blob/0553b3b0e82dcb3584b6662e1417a070530879df/AGENTS.md).
+- [Contrato de predicción](https://github.com/coslatte/saduci/blob/0553b3b0e82dcb3584b6662e1417a070530879df/apps/core/src/shared_core/schemas/prediction.py).
+- [Inferencia e impacto por referencia](https://github.com/coslatte/saduci/blob/0553b3b0e82dcb3584b6662e1417a070530879df/apps/core/src/prediction/app/services/inference.py).
+- [Predicción, explicación y persistencia](https://github.com/coslatte/saduci/blob/0553b3b0e82dcb3584b6662e1417a070530879df/apps/core/src/prediction/app/services/prediction_service.py).
+- [Carga del pipeline](https://github.com/coslatte/saduci/blob/0553b3b0e82dcb3584b6662e1417a070530879df/apps/core/src/prediction/app/services/ml_model.py).
+- [Configuración y códigos](https://github.com/coslatte/saduci/blob/0553b3b0e82dcb3584b6662e1417a070530879df/apps/core/src/prediction/app/services/config.py).
+- [Generación narrativa](https://github.com/coslatte/saduci/blob/0553b3b0e82dcb3584b6662e1417a070530879df/apps/core/src/prediction/app/services/narrative.py).
+- [Modelo narrativo local](https://github.com/coslatte/saduci/blob/0553b3b0e82dcb3584b6662e1417a070530879df/apps/core/src/prediction/app/services/narrative_model.py).
+- [Activo narrativo y checksum](https://github.com/coslatte/saduci/blob/0553b3b0e82dcb3584b6662e1417a070530879df/apps/core/src/prediction/app/services/model_assets.py).
+- [Entidades persistidas](https://github.com/coslatte/saduci/blob/0553b3b0e82dcb3584b6662e1417a070530879df/apps/core/src/prediction/app/models/entities.py).
+- [Pruebas del servicio](https://github.com/coslatte/saduci/blob/0553b3b0e82dcb3584b6662e1417a070530879df/apps/core/tests/prediction/test_prediction_api.py).
 
-Los enlaces a SADUCI apuntan al commit de referencia en GitHub. El repositorio SADUCI es privado; esos enlaces requieren permisos de acceso y no constituyen fuentes públicas consultables por cualquier revisor. El informe distingue las observaciones de esa revisión local de las propuestas de implementación. Las rutas con `../saduci` describen la disposición local utilizada durante la revisión. Este informe se contribuye al repositorio de investigación mediante un fork; la documentación operativa definitiva se incorporará a la ubicación canónica de SADUCI cuando se implemente el cambio.
+Los enlaces a SADUCI apuntan al commit de referencia en GitHub. El repositorio SADUCI es público en https://github.com/coslatte/saduci; las fuentes enlazadas pueden consultarse sin permisos privados. El informe distingue las observaciones de esa revisión local de las propuestas de implementación. Las rutas con `../saduci` describen la disposición local utilizada durante la revisión. Este informe se contribuye al repositorio de investigación mediante un fork; la documentación operativa definitiva se incorporará a la ubicación canónica de SADUCI cuando se implemente el cambio.
